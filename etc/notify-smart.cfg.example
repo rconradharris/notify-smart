@@ -1,0 +1,10 @@
+# Place this in ~/.notify-smart.cfg
+[general]
+idle = 60
+
+[email]
+smtp_host = <YOUR-SMTP-HOST-HERE>
+smtp_password = <YOUR-PASSWORD-HERE>
+smtp_user = <YOUR-USERNAME-HERE>
+from_email = <YOUR-EMAIL-HERE>
+to_email = <YOUR-SMS-EMAIL-GATEWAY-ADDRESS-HERE>
