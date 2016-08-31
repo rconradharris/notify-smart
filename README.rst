@@ -10,6 +10,28 @@ Intended to be used with ``irssi`` and ``fnotify.pl`` to notify user of incoming
 messages in the most appropriate way.
 
 
+Design
+======
+
+
+There are two notification modes, terminal-notifier and email/SMS.
+
+
+terminal-notifier notifications are handled client-side by remotely tailing
+the fnotify log file.
+
+Email/SMS notifications are handled server-side so that they will continue to
+work even when your laptop is closed.
+
+So that you don't get Email/SMS notifications when you're active at your
+computer, a client-side piece updates a server-side file with your
+current-idle time.
+
+If the current-idle time exceeds the threshold OR the last-modified timestamp
+of that file exceeds the threshold, then an email/SMS notification is
+generated.
+
+
 Setup
 =====
 

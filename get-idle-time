@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+from Quartz.CoreGraphics import CGEventSourceSecondsSinceLastEventType
+
+
+def get_idle_time():
+    """Determine idle time in seconds in Mac OS X"""
+    NX_ALLEVENTS = int(4294967295)  # 32-bits, all on.
+    return CGEventSourceSecondsSinceLastEventType(1, NX_ALLEVENTS)
+
+
+if __name__ == '__main__':
+    print get_idle_time()
