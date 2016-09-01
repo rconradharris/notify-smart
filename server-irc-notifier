@@ -9,7 +9,7 @@ this script runs.
 This script doesn't exit and is intended to be run inside a GNU screen
 session window
 
-Configure using ~/.notify-smart.cfg
+Configure using ~/.server-irc-notifier.cfg
 """
 
 import ConfigParser
@@ -21,7 +21,7 @@ import sys
 import time
 
 
-CONFIG_FILE = os.path.expanduser('~/.notify-smart.cfg')
+CONFIG_FILE = os.path.expanduser('~/.server-irc-notifier.cfg')
 IDLE_TIME_PATH = '.irssi/idle-time'
 FNOTIFY_LOG = '.irssi/fnotify'
 
@@ -47,6 +47,8 @@ def is_idle(cfg):
     """
     idle_threshold  = cfg.getint('general', 'idle')
     assert idle_threshold is not None, 'idle is required in config'
+    if idle_threshold < 0:
+        return True
     if not os.path.exists(IDLE_TIME_PATH):
         return True
     mtime = os.path.getmtime(IDLE_TIME_PATH)
