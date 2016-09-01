@@ -47,19 +47,31 @@ def is_idle(cfg):
     """
     idle_threshold  = cfg.getint('general', 'idle')
     assert idle_threshold is not None, 'idle is required in config'
+    print "Checking Idle..."
     if idle_threshold < 0:
+        print "IDLE: Idle Threshold < 0"
         return True
     if not os.path.exists(IDLE_TIME_PATH):
+        print "IDLE: Idle file doesn't exist"
         return True
     mtime = os.path.getmtime(IDLE_TIME_PATH)
     if mtime > idle_threshold:
+        print "IDLE: Idle file is stale"
         return True
     with open(IDLE_TIME_PATH) as f:
         idle_time = float(f.read().strip())
-    return idle_time > idle_threshold
+    if idle_time > idle_threshold:
+        print "IDLE: threshold exceeded, {} > {}".format(
+                idle_time, idle_threshold)
+        return True
+    else:
+        print "NOT IDLE: under threshold , {} <= {}".format(
+                idle_time, idle_threshold)
+        return False
 
 
 def notify_email(cfg, body):
+    print "Sending Notification: ", body
     host = cfg.get('email', 'smtp_host')
     assert host
     server = smtp_connect(host,
