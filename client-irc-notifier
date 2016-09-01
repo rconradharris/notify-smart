@@ -1,5 +1,12 @@
 #!/bin/bash
-# http://andy.delcambre.com/2008/12/06/growl-notifications-with-irssi.html
+#
+# Generate terminal notifications by remotely tailing fnotify log file.
+#
+# Also update remote idle-time file so that server-irc-notifier knows if it
+# should send an email/SMS notification
+#
+# Inspired by: http://andy.delcambre.com/2008/12/06/growl-notifications-with-irssi.html
+
 IRC_HOST=irc
 NOTIFIER=/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier
 
