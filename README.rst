@@ -1,6 +1,6 @@
-============
-notify-smart
-============
+==================
+smart-irc-notifier
+==================
 
 
 Notify you of IRC messages, both locally via the Mac OS X notification system,
