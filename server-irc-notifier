@@ -47,19 +47,23 @@ def is_idle(cfg):
     """
     idle_threshold  = cfg.getint('general', 'idle')
     assert idle_threshold is not None, 'idle is required in config'
-    print "Checking Idle..."
-    if idle_threshold < 0:
-        print "IDLE: Idle Threshold < 0"
-        return True
+
+    # Check for idle-time file existence
     if not os.path.exists(IDLE_TIME_PATH):
         print "IDLE: Idle file doesn't exist"
         return True
+
+    # Ensure idle-time file isn't stale
     age = time.time() - os.path.getmtime(IDLE_TIME_PATH)
     if age > idle_threshold:
         print "IDLE: Idle file is stale: {} > {}".format(age, idle_threshold)
         return True
+
+    # Read idle-time file
     with open(IDLE_TIME_PATH) as f:
         idle_time = float(f.read().strip())
+
+    # Ensure contents (idle-time) are under threshold
     if idle_time > idle_threshold:
         print "IDLE: threshold exceeded, {} > {}".format(
                 idle_time, idle_threshold)
