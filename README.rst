@@ -53,7 +53,7 @@ The recommended way of running ``client-irc-notifier`` is by using a
         Hostname <YOUR-IRC-BOUNCER-HOST>
         User <YOUR-USERNAME>
         PermitLocalCommand yes
-        LocalCommand ~/bin/client-irc-notifier
+        LocalCommand ~/bin/client-irc-notifier start
 
 Server-side
 -----------

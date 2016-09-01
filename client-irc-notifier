@@ -6,28 +6,49 @@
 # should send an email/SMS notification
 #
 # Inspired by: http://andy.delcambre.com/2008/12/06/growl-notifications-with-irssi.html
+#
+# Usage: client-irc-notifier <start|stop>
 
 IRC_HOST=irc
 NOTIFIER=/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier
 
-[ -e $NOTIFIER ] || exit 1
 
-# Kill any existly irc-notifier.sh commands
-ps -eaf | grep bash.*irc-notifier | grep -v grep | grep -v $$ | awk '{ print $2 }' | xargs kill
+function stop() {
+    # Kill any existly irc-notifier commands
+    ps -eaf | grep bash.*client-irc-notifier | grep -v grep | grep -v $$ | awk '{ print $2 }' | xargs kill
 
-# Shell into machine and start reading file
-ssh irc -o PermitLocalCommand=no "ps -eaf | grep fnotify | grep -v grep | awk '{ print \$2 }' | xargs kill 2> /dev/null"
+    # Kill any remote processes for fnotify
+    ssh $IRC_HOST -o PermitLocalCommand=no "ps -eaf | grep fnotify | grep -v grep | awk '{ print \$2 }' | xargs kill 2> /dev/null"
+}
 
-# Emit terminal-notifier notifications anytime a new line is added to
-# fnotifier file
-(ssh $IRC_HOST -o PermitLocalCommand=no  \
-     "tail -n0 -f .irssi/fnotify " | \
-   while read message; do                    \
-     echo $message | $NOTIFIER -group IRC -title IRC 2>&1 > /dev/null; \
-   done)&
 
-# Update remote server with our current idle time
-(while true; do
-    python -c 'from Quartz.CoreGraphics import CGEventSourceSecondsSinceLastEventType; print CGEventSourceSecondsSinceLastEventType(1, int(4294967295))'
-    sleep 1
-done | ssh $IRC_HOST -o PermitLocalCommand=no 'while read msg; do echo $msg > .irssi/idle-time; done;')&
+function start() {
+    [ -e $NOTIFIER ] || exit 1
+
+    stop  # Kill any existing processes before starting
+
+    # Emit terminal-notifier notifications anytime a new line is added to
+    # fnotifier file
+    (ssh $IRC_HOST -o PermitLocalCommand=no  \
+         "tail -n0 -f .irssi/fnotify " | \
+       while read message; do                    \
+         echo $message | $NOTIFIER -group IRC -title IRC 2>&1 > /dev/null; \
+       done)&
+
+    # Update remote server with our current idle time
+    local ret=0
+    (while [[ $RET -eq 0 ]]; do
+        python -c 'from Quartz.CoreGraphics import CGEventSourceSecondsSinceLastEventType; print CGEventSourceSecondsSinceLastEventType(1, int(4294967295))'
+        ret=$?
+        sleep 1
+    done | ssh $IRC_HOST -o PermitLocalCommand=no 'while read msg; do echo $msg > .irssi/idle-time; done;')&
+}
+
+if [[ $1 = start ]]; then
+    start
+elif [[ $1 = stop ]]; then
+    stop
+else
+    echo "usage: client-irc-notifier <start|stop>"
+    exit 1
+fi
