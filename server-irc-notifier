@@ -2,8 +2,8 @@
 """
 Send a email/SMS notification if the user is idle on their laptop.
 
-Idle is determine by the user running a program on their laptop
-(irc-notifier.sh) which constantly sends idle-time back to the server where
+Idle is determined by the user running a program on their laptop
+(client-irc-notifier) which constantly sends idle-time back to the server where
 this script runs.
 
 This script doesn't exit and is intended to be run inside a GNU screen

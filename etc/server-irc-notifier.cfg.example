@@ -1,4 +1,4 @@
-# Place this in ~/.notify-smart.cfg
+# Place this in ~/.server-irc-notifier.cfg
 [general]
 idle = 60
 
