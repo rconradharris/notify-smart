@@ -54,9 +54,9 @@ def is_idle(cfg):
     if not os.path.exists(IDLE_TIME_PATH):
         print "IDLE: Idle file doesn't exist"
         return True
-    mtime = os.path.getmtime(IDLE_TIME_PATH)
-    if mtime > idle_threshold:
-        print "IDLE: Idle file is stale"
+    age = time.time() - os.path.getmtime(IDLE_TIME_PATH)
+    if age > idle_threshold:
+        print "IDLE: Idle file is stale: {} > {}".format(age, idle_threshold)
         return True
     with open(IDLE_TIME_PATH) as f:
         idle_time = float(f.read().strip())
