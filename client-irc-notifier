@@ -28,6 +28,6 @@ ssh irc -o PermitLocalCommand=no "ps -eaf | grep fnotify | grep -v grep | awk '{
 
 # Update remote server with our current idle time
 (while true; do
-    echo $(get-idle-time)
+    python -c 'from Quartz.CoreGraphics import CGEventSourceSecondsSinceLastEventType; print CGEventSourceSecondsSinceLastEventType(1, int(4294967295))'
     sleep 1
 done | ssh $IRC_HOST -o PermitLocalCommand=no 'while read msg; do echo $msg > .irssi/idle-time; done;')&
