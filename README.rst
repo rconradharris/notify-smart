@@ -60,7 +60,7 @@ Server-side
 
 First you need to setup ``fnotify.pl``.
 
-Next you need to run create a config file in ``~/.server-irc-notifier.cfg``,
+Next you need to run create a config file in ``.irssi/server-irc-notifier.cfg``,
 use ``examples`` directory for help.
 
 Finally, you need to copy ``server-irc-notifier`` script to the server (e.g.

@@ -1,4 +1,4 @@
-# Place this in ~/.server-irc-notifier.cfg
+# Place this in .irssi/server-irc-notifier.cfg
 [general]
 idle = 60
 
