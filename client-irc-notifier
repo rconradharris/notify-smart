@@ -17,6 +17,16 @@ function stop() {
     # Kill any existly irc-notifier commands
     ps -eaf | grep bash.*client-irc-notifier | grep -v grep | grep -v $$ | awk '{ print $2 }' | xargs kill
 
+    # Kill any related local ssh processes
+    ps -eaf | grep ssh.*.irssi/fnotify | grep -v grep | grep -v $$ | awk '{ print $2 }' | xargs kill
+    ps -eaf | grep ssh.*.irssi/idle-time | grep -v grep | grep -v $$ | awk '{ print $2 }' | xargs kill
+
+    # Kill Python idle-time process which isn't greppable
+    if [[ -e /tmp/python-idle-time.pid ]]; then
+        kill `cat /tmp/python-idle-time.pid`
+        rm '/tmp/python-idle-time.pid'
+    fi
+
     # Kill any remote processes for fnotify
     ssh $IRC_HOST -o PermitLocalCommand=no "ps -eaf | grep fnotify | grep -v grep | awk '{ print \$2 }' | xargs kill 2> /dev/null"
 }
@@ -36,14 +46,25 @@ function start() {
        done)&
 
     # Update remote server with our current idle time
+    #
     # -u means unbuffered output so that any errors will cause `print` to
     # raise an exception and the script to return 1
+    #
+    # Write pidfile because `python -u` is not greppable when killing
+    # processes
     (python -u <<EOF |
-import sys, time
+import os, sys, time
 from Quartz.CoreGraphics import CGEventSourceSecondsSinceLastEventType
-while True:
-    print CGEventSourceSecondsSinceLastEventType(1, int(4294967295))
-    time.sleep(1.0)
+pidfile = '/tmp/python-idle-time.pid'
+with open(pidfile, 'w') as f:
+    f.write(str(os.getpid()))
+try:
+    while True:
+        print CGEventSourceSecondsSinceLastEventType(1, int(4294967295))
+        time.sleep(1.0)
+finally:
+    if os.path.exists(pidfile):
+        os.unlink(pidfile)
 EOF
 ssh $IRC_HOST -o PermitLocalCommand=no 'while read msg; do echo $msg > .irssi/idle-time; done;')&
 }

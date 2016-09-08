@@ -34,7 +34,7 @@ def is_idle(cfg):
     If the `idle-time` file doesn't exist, then the user is by definition idle
     (because they haven't logged in to create it).
 
-    If the `idle-time` file is present, we two possibilities:
+    If the `idle-time` file is present, we have two possibilities:
 
         1) File hasn't been touched in a while: This means the laptop is no
         longer active (from our perspective) and we should consider the user
