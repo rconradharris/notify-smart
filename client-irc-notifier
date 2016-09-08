@@ -69,11 +69,26 @@ EOF
 ssh $IRC_HOST -o PermitLocalCommand=no 'while read msg; do echo $msg > .irssi/idle-time; done;')&
 }
 
+
+function _set_force_idle() {
+    ssh $IRC_HOST -o PermitLocalCommand=no 'while read msg; do echo $msg > .irssi/force-idle; done;'
+}
+
+
 if [[ $1 = start ]]; then
     start
 elif [[ $1 = stop ]]; then
     stop
+elif [[ $1 = idle ]]; then
+    echo Forcing IDLE...
+    echo 1 | _set_force_idle
+elif [[ $1 = not-idle ]]; then
+    echo Forcing NOT IDLE...
+    echo 2 | _set_force_idle
+elif [[ $1 = normal ]]; then
+    echo Returning to normal idle/not-idle behavior...
+    echo 0 | _set_force_idle
 else
-    echo "usage: client-irc-notifier <start|stop>"
+    echo "usage: client-irc-notifier <start|idle|not-idle|normal|stop>"
     exit 1
 fi

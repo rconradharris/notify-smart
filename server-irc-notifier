@@ -23,6 +23,7 @@ import time
 
 CONFIG_FILE = '.irssi/server-irc-notifier.cfg'
 IDLE_TIME_PATH = '.irssi/idle-time'
+FORCE_IDLE_PATH = '.irssi/force-idle'
 FNOTIFY_LOG = '.irssi/fnotify'
 
 
@@ -33,6 +34,13 @@ def is_idle(cfg):
 
     If the `idle-time` file doesn't exist, then the user is by definition idle
     (because they haven't logged in to create it).
+
+    Alternatively, the user can be 'forcing' a particular mode; this is
+    signaled by the `force-idle` file with the following values:
+
+            0 NORMAL
+            1 FORCE IDLE
+            2 FORCE NOT IDLE
 
     If the `idle-time` file is present, we have two possibilities:
 
@@ -53,13 +61,27 @@ def is_idle(cfg):
         print "IDLE: Idle file doesn't exist"
         return True
 
+    # Check for force values first...
+    if os.path.exists(FORCE_IDLE_PATH):
+        with open(FORCE_IDLE_PATH) as f:
+            force_val = int(f.read().strip())
+        if force_val == 1:
+            print "IDLE: forced"
+            return True
+        elif force_val == 2:
+            print "NOT IDLE: forced"
+            return False
+        else:
+            print "Leaving force mode..."
+            os.unlink(FORCE_IDLE_PATH)
+            # Fall through to normal logic...
+
     # Ensure idle-time file isn't stale
     age = time.time() - os.path.getmtime(IDLE_TIME_PATH)
     if age > idle_threshold:
         print "IDLE: Idle file is stale: {} > {}".format(age, idle_threshold)
         return True
 
-    # Read idle-time file
     with open(IDLE_TIME_PATH) as f:
         idle_time = float(f.read().strip())
 

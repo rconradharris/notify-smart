@@ -65,3 +65,26 @@ use ``examples`` directory for help.
 
 Finally, you need to copy ``server-irc-notifier`` script to the server (e.g.
 your IRC bouncer) and run it in a screen session.
+
+
+Tips
+====
+
+
+If necessary, you can always override behavior to force IDLE or NOT IDLE. This
+is useful if you're going to be away and still don't want to receive SMS
+messages.
+
+To force IDLE run::
+
+    client-irc-notifier idle
+
+
+To force NOT IDLE::
+
+    client-irc-notifier not-idle
+
+
+To leave force mode and return to normal idle checking, run::
+
+    client-irc-notifier normal
