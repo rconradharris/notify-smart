@@ -89,7 +89,6 @@ def is_idle(cfg, idle_time, age):
         return True
 
     idle_threshold  = cfg.getint('general', 'idle')
-    assert idle_threshold is not None, 'idle is required in config'
 
     # Ensure contents (idle-time) are under threshold
     if idle_time > idle_threshold:
@@ -145,8 +144,9 @@ def main():
         sys.exit(1)
     cfg = ConfigParser.ConfigParser()
     cfg.read(CONFIG_FILE)
-    poll_interval  = cfg.getfloat('general', 'poll_interval')
-    if poll_interval is None:
+    try:
+        poll_interval  = cfg.getfloat('general', 'poll_interval')
+    except ConfigParser.NoOptionError:
         poll_interval = DEFAULT_POLL_INTERVAL
 
     last_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
