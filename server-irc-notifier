@@ -25,9 +25,19 @@ CONFIG_FILE = '.irssi/server-irc-notifier.cfg'
 IDLE_TIME_PATH = '.irssi/idle-time'
 FORCE_IDLE_PATH = '.irssi/force-idle'
 FNOTIFY_LOG = '.irssi/fnotify'
+DEFAULT_POLL_INTERVAL = 1.0
 
 
-def is_idle(cfg):
+def get_idle_time_and_age():
+    if os.path.exists(IDLE_TIME_PATH):
+        with open(IDLE_TIME_PATH) as f:
+            idle_time = float(f.read().strip())
+            age = time.time() - os.path.getmtime(IDLE_TIME_PATH)
+            return (idle_time, age)
+    return (None, None)
+
+
+def is_idle(cfg, idle_time, age):
     """Determine whether the user is considered idle.
 
     A script on the users laptop is updating the local `idle-time` file.
@@ -53,14 +63,6 @@ def is_idle(cfg):
         not be at their desk. So in this case, use the contents of `idle-time`
         file to determine what to do.
     """
-    idle_threshold  = cfg.getint('general', 'idle')
-    assert idle_threshold is not None, 'idle is required in config'
-
-    # Check for idle-time file existence
-    if not os.path.exists(IDLE_TIME_PATH):
-        print "IDLE: Idle file doesn't exist"
-        return True
-
     # Check for force values first...
     if os.path.exists(FORCE_IDLE_PATH):
         with open(FORCE_IDLE_PATH) as f:
@@ -76,14 +78,18 @@ def is_idle(cfg):
             os.unlink(FORCE_IDLE_PATH)
             # Fall through to normal logic...
 
+    # Ensure idle-time file exists...
+    if not idle_time and not age:
+        print "IDLE: Idle file doesn't exist"
+        return True
+
     # Ensure idle-time file isn't stale
-    age = time.time() - os.path.getmtime(IDLE_TIME_PATH)
     if age > idle_threshold:
         print "IDLE: Idle file is stale: {} > {}".format(age, idle_threshold)
         return True
 
-    with open(IDLE_TIME_PATH) as f:
-        idle_time = float(f.read().strip())
+    idle_threshold  = cfg.getint('general', 'idle')
+    assert idle_threshold is not None, 'idle is required in config'
 
     # Ensure contents (idle-time) are under threshold
     if idle_time > idle_threshold:
@@ -134,25 +140,32 @@ def smtp_send(server, from_email, to_email, body=None, subject=None):
 
 
 def main():
+    if not os.path.exists(CONFIG_FILE):
+        print "error: required config file not found at '{}'".format(CONFIG_FILE)
+        sys.exit(1)
     cfg = ConfigParser.ConfigParser()
     cfg.read(CONFIG_FILE)
+    poll_interval  = cfg.getfloat('general', 'poll_interval')
+    if poll_interval is None:
+        poll_interval = DEFAULT_POLL_INTERVAL
 
     last_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
 
     while True:
+        idle_time, age = get_idle_time_and_age()
+        print "idle_time = {}, age = {}".format(idle_time, age)
+
+        # Only process if fnotify file was updated since last read...
         cur_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
+        if cur_fnotify_mtime != last_fnotify_mtime:
+            last_fnotify_mtime = cur_fnotify_mtime
 
-        if cur_fnotify_mtime == last_fnotify_mtime:
-            continue    # No update, continue
+            if is_idle(cfg, idle_time, age):
+                with open(FNOTIFY_LOG) as f:
+                    last_line =  f.read().splitlines()[-1]
+                    notify_email(cfg, last_line)
 
-        last_fnotify_mtime = cur_fnotify_mtime
-
-        if is_idle(cfg):
-            with open(FNOTIFY_LOG) as f:
-                last_line =  f.read().splitlines()[-1]
-                notify_email(cfg, last_line)
-
-        time.sleep(1.0)
+        time.sleep(poll_interval)
 
 
 if __name__ == '__main__':
