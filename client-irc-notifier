@@ -13,6 +13,16 @@ IRC_HOST=irc
 NOTIFIER=/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier
 
 
+function _ssh_irc_host() {
+    ssh $IRC_HOST -o PermitLocalCommand=no $1
+}
+
+
+function _set_force_idle() {
+    _ssh_irc_host "echo $1 > .irssi/force-idle"
+}
+
+
 function stop() {
     # Kill any existly irc-notifier commands
     ps -eaf | grep bash.*client-irc-notifier | grep -v grep | grep -v $$ | awk '{ print $2 }' | xargs kill
@@ -66,14 +76,8 @@ finally:
     if os.path.exists(pidfile):
         os.unlink(pidfile)
 EOF
-ssh $IRC_HOST -o PermitLocalCommand=no 'while read msg; do echo $msg > .irssi/idle-time; done;')&
+_ssh_irc_host 'while read msg; do echo $msg > .irssi/idle-time; done;')&
 }
-
-
-function _set_force_idle() {
-    ssh $IRC_HOST -o PermitLocalCommand=no 'while read msg; do echo $msg > .irssi/force-idle; done;'
-}
-
 
 if [[ $1 = start ]]; then
     start
@@ -81,13 +85,13 @@ elif [[ $1 = stop ]]; then
     stop
 elif [[ $1 = idle ]]; then
     echo Forcing IDLE...
-    echo 1 | _set_force_idle
+    _set_force_idle 1
 elif [[ $1 = not-idle ]]; then
     echo Forcing NOT IDLE...
-    echo 2 | _set_force_idle
+    _set_force_idle 2
 elif [[ $1 = normal ]]; then
     echo Returning to normal idle/not-idle behavior...
-    echo 0 | _set_force_idle
+    _set_force_idle 0
 else
     echo "usage: client-irc-notifier <start|idle|not-idle|normal|stop>"
     exit 1
