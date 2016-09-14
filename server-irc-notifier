@@ -104,9 +104,14 @@ def notify_email(cfg, body):
     print "Sending Notification: ", body
     host = cfg.get('email', 'smtp_host')
     assert host
+    try:
+        debuglevel = cfg.getint('email', 'debuglevel')
+    except ConfigParser.NoOptionError:
+        debuglevel = 0
     server = smtp_connect(host,
                           cfg.get('email', 'smtp_user'),
-                          cfg.get('email', 'smtp_password'))
+                          cfg.get('email', 'smtp_password'),
+                          debuglevel=debuglevel)
     try:
         smtp_send(server,
                   cfg.get('email', 'from_email'),
@@ -116,8 +121,9 @@ def notify_email(cfg, body):
         smtp_close(server)
 
 
-def smtp_connect(host, user, password):
+def smtp_connect(host, user, password, debuglevel=0):
     server = smtplib.SMTP(host)
+    server.set_debuglevel(debuglevel)
     server.ehlo()
     server.starttls()
     server.login(user, password)
