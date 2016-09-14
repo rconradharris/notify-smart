@@ -28,7 +28,7 @@ FNOTIFY_LOG = '.irssi/fnotify'
 DEFAULT_POLL_INTERVAL = 1.0
 
 
-def get_idle_time_and_age():
+def get_idle_time_and_last_updated():
     if os.path.exists(IDLE_TIME_PATH):
         with open(IDLE_TIME_PATH) as f:
             try:
@@ -36,12 +36,12 @@ def get_idle_time_and_age():
             except ValueError:
                 pass
             else:
-                age = time.time() - os.path.getmtime(IDLE_TIME_PATH)
-                return (idle_time, age)
+                last_updated = time.time() - os.path.getmtime(IDLE_TIME_PATH)
+                return (idle_time, last_updated)
     return (None, None)
 
 
-def get_is_idle(cfg, idle_time, age):
+def get_is_idle(cfg, idle_time, last_updated):
     """Determine whether the user is considered idle.
 
     A script on the users laptop is updating the local `idle-time` file.
@@ -81,22 +81,22 @@ def get_is_idle(cfg, idle_time, age):
             # Fall through to normal logic...
 
     # Ensure idle-time file exists...
-    if not idle_time and not age:
+    if not idle_time and not last_updated:
         return True, "idle-time file doesn't exist or is empty"
 
     idle_threshold  = cfg.getint('general', 'idle')
 
     # Ensure idle-time file isn't stale
-    if age > idle_threshold:
-        return (True, 'idle-time is stale ({} > {})'.format(
-                    age, idle_threshold))
+    if last_updated > idle_threshold:
+        return (True, 'idle-time is stale ({:.2f} > {})'.format(
+                    last_updated, idle_threshold))
 
     # Ensure contents (idle-time) are under threshold
     if idle_time > idle_threshold:
-        return (True,  'idle threshold exceeded ({} > {})'.format(
+        return (True,  'idle threshold exceeded ({:.2f} > {})'.format(
                     idle_time, idle_threshold))
     else:
-        return (False, 'below threshold ({} <= {})'.format(
+        return (False, 'below threshold ({:.2f} <= {})'.format(
                     idle_time, idle_threshold))
 
 
@@ -153,11 +153,12 @@ def main():
     last_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
 
     while True:
-        idle_time, age = get_idle_time_and_age()
-        is_idle, reason = get_is_idle(cfg, idle_time, age)
+        idle_time, last_updated = get_idle_time_and_last_updated()
+        is_idle, reason = get_is_idle(cfg, idle_time, last_updated)
 
-        print "IDLE_TIME = {:<10.2f} AGE = {:<10.2f} IDLE = {:<10}"\
-              "REASON = {}".format(idle_time, age, str(is_idle), reason)
+        print "IDLE_TIME = {:<8.2f} LAST UPDATED = {:<8.2f} IDLE = {:<8}"\
+              "REASON = {}".format(idle_time, last_updated, str(is_idle),
+                                   reason)
 
         # Only process if fnotify file was updated since last read...
         cur_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
