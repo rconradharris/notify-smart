@@ -76,7 +76,7 @@ finally:
     if os.path.exists(pidfile):
         os.unlink(pidfile)
 EOF
-_ssh_irc_host 'while read msg; do echo $msg > .irssi/idle-time; done;')&
+_ssh_irc_host 'while read msg; do echo $msg > .irssi/idle-time; sleep 1; done;')&
 }
 
 if [[ $1 = start ]]; then
