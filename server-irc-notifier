@@ -87,12 +87,12 @@ def get_is_idle(cfg, idle_time, age):
     if not idle_time and not age:
         return rv(True, "idle-time file doesn't exist or is empty")
 
+    idle_threshold  = cfg.getint('general', 'idle')
+
     # Ensure idle-time file isn't stale
     if age > idle_threshold:
         return rv(True, 'idle-time is stale: {} > {}'.format(
                     age, idle_threshold))
-
-    idle_threshold  = cfg.getint('general', 'idle')
 
     # Ensure contents (idle-time) are under threshold
     if idle_time > idle_threshold:
