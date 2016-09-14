@@ -31,9 +31,13 @@ DEFAULT_POLL_INTERVAL = 1.0
 def get_idle_time_and_age():
     if os.path.exists(IDLE_TIME_PATH):
         with open(IDLE_TIME_PATH) as f:
-            idle_time = float(f.read().strip())
-            age = time.time() - os.path.getmtime(IDLE_TIME_PATH)
-            return (idle_time, age)
+            try:
+                idle_time = float(f.read().strip())
+            except ValueError:
+                pass
+            else:
+                age = time.time() - os.path.getmtime(IDLE_TIME_PATH)
+                return (idle_time, age)
     return (None, None)
 
 
