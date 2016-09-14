@@ -40,7 +40,7 @@ function stop() {
     fi
 
     # Kill any remote processes for fnotify
-    ssh $IRC_HOST -o PermitLocalCommand=no "ps -eaf | grep fnotify | grep -v grep | awk '{ print \$2 }' | xargs kill 2> /dev/null"
+    _ssh_irc_host "ps -eaf | grep fnotify | grep -v grep | awk '{ print \$2 }' | xargs kill 2> /dev/null"
 }
 
 
@@ -51,8 +51,7 @@ function start() {
 
     # Emit terminal-notifier notifications anytime a new line is added to
     # fnotifier file
-    (ssh $IRC_HOST -o PermitLocalCommand=no  \
-         "tail -n0 -f .irssi/fnotify " | \
+    (_ssh_irc_host "tail -n0 -f .irssi/fnotify " | \
        while read message; do                    \
          echo $message | $NOTIFIER -group IRC -title IRC 2>&1 > /dev/null; \
        done)&
