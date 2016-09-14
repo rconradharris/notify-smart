@@ -14,7 +14,9 @@ NOTIFIER=/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier
 
 
 function _ssh_irc_host() {
-    ssh $IRC_HOST -o PermitLocalCommand=no $1
+    ssh $IRC_HOST -o PermitLocalCommand=no \
+                  -o ServerAliveInterval=60 \
+                  $1
 }
 
 
