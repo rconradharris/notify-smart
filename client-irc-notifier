@@ -7,7 +7,7 @@
 #
 # Inspired by: http://andy.delcambre.com/2008/12/06/growl-notifications-with-irssi.html
 #
-# Usage: client-irc-notifier <start|stop>
+# Usage: client-irc-notifier <auto|away|here|start|stop>"
 
 IRC_HOST=irc
 NOTIFIER=/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier
@@ -85,16 +85,16 @@ if [[ $1 = start ]]; then
     start
 elif [[ $1 = stop ]]; then
     stop
-elif [[ $1 = idle ]]; then
-    echo Forcing IDLE...
+elif [[ $1 = away ]]; then
+    echo Away mode enabled, now considered IDLE until otherwise directed...
     _set_force_idle 1
-elif [[ $1 = not-idle ]]; then
-    echo Forcing NOT IDLE...
+elif [[ $1 = here ]]; then
+    echo Here mode enabled, now considered NOT IDLE until otherwise directed...
     _set_force_idle 2
-elif [[ $1 = normal ]]; then
-    echo Returning to normal idle/not-idle behavior...
+elif [[ $1 = auto ]]; then
+    echo Automatic idle detection enabled...
     _set_force_idle 0
 else
-    echo "usage: client-irc-notifier <start|idle|not-idle|normal|stop>"
+    echo "usage: client-irc-notifier <auto|away|here|start|stop>"
     exit 1
 fi
