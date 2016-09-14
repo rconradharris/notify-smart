@@ -68,40 +68,36 @@ def get_is_idle(cfg, idle_time, age):
         file to determine what to do.
     """
 
-    def rv(is_idle, msg):
-        return (is_idle, "IDLE: " + msg if is_idle else "NOT IDLE: " + msg)
-
     # Check for force values first...
     if os.path.exists(FORCE_IDLE_PATH):
         with open(FORCE_IDLE_PATH) as f:
             force_val = int(f.read().strip())
         if force_val == 1:
-            return rv(True, 'Forced')
+            return True, 'Forced'
         elif force_val == 2:
-            return rv(False, 'Forced')
+            return False, 'Forced'
         else:
             os.unlink(FORCE_IDLE_PATH)
             # Fall through to normal logic...
 
     # Ensure idle-time file exists...
     if not idle_time and not age:
-        return rv(True, "idle-time file doesn't exist or is empty")
+        return True, "idle-time file doesn't exist or is empty"
 
     idle_threshold  = cfg.getint('general', 'idle')
 
     # Ensure idle-time file isn't stale
     if age > idle_threshold:
-        return rv(True, 'idle-time is stale: {} > {}'.format(
+        return (True, 'idle-time is stale: {} > {}'.format(
                     age, idle_threshold))
 
     # Ensure contents (idle-time) are under threshold
     if idle_time > idle_threshold:
-        return rv(True,  'idle threshold exceeded, {} > {}'.format(
+        return (True,  'idle threshold exceeded, {} > {}'.format(
                     idle_time, idle_threshold))
     else:
-        return rv(False, 'under threshold , {} <= {}'.format(
+        return (False, 'under threshold , {} <= {}'.format(
                     idle_time, idle_threshold))
-        return False
 
 
 def notify_email(cfg, body):
@@ -145,8 +141,10 @@ def main():
     if not os.path.exists(CONFIG_FILE):
         print "error: required config file not found at '{}'".format(CONFIG_FILE)
         sys.exit(1)
+
     cfg = ConfigParser.ConfigParser()
     cfg.read(CONFIG_FILE)
+
     try:
         poll_interval  = cfg.getfloat('general', 'poll_interval')
     except ConfigParser.NoOptionError:
@@ -156,13 +154,17 @@ def main():
 
     while True:
         idle_time, age = get_idle_time_and_age()
-        is_idle, msg = get_is_idle(cfg, idle_time, age)
-        print "idle_time = {}, age = {}, idle = {}".format(idle_time, age, msg)
+        is_idle, reason = get_is_idle(cfg, idle_time, age)
+
+        print "idle_time = {:<6.2f} age = {:<6.2f} idle = {:<6}"\
+              "reason = {}".format(idle_time, age, str(is_idle), reason)
 
         # Only process if fnotify file was updated since last read...
         cur_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
+
         if is_idle and (cur_fnotify_mtime != last_fnotify_mtime):
             last_fnotify_mtime = cur_fnotify_mtime
+
             with open(FNOTIFY_LOG) as f:
                 last_line =  f.read().splitlines()[-1]
                 notify_email(cfg, last_line)
