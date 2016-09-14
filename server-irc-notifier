@@ -88,15 +88,15 @@ def get_is_idle(cfg, idle_time, age):
 
     # Ensure idle-time file isn't stale
     if age > idle_threshold:
-        return (True, 'idle-time is stale: {} > {}'.format(
+        return (True, 'idle-time is stale ({} > {})'.format(
                     age, idle_threshold))
 
     # Ensure contents (idle-time) are under threshold
     if idle_time > idle_threshold:
-        return (True,  'idle threshold exceeded, {} > {}'.format(
+        return (True,  'idle threshold exceeded ({} > {})'.format(
                     idle_time, idle_threshold))
     else:
-        return (False, 'under threshold , {} <= {}'.format(
+        return (False, 'below threshold ({} <= {})'.format(
                     idle_time, idle_threshold))
 
 
@@ -156,8 +156,8 @@ def main():
         idle_time, age = get_idle_time_and_age()
         is_idle, reason = get_is_idle(cfg, idle_time, age)
 
-        print "idle_time = {:<6.2f} age = {:<6.2f} idle = {:<6}"\
-              "reason = {}".format(idle_time, age, str(is_idle), reason)
+        print "IDLE_TIME = {:<10.2f} AGE = {:<10.2f} IDLE = {:<10}"\
+              "REASON = {}".format(idle_time, age, str(is_idle), reason)
 
         # Only process if fnotify file was updated since last read...
         cur_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
