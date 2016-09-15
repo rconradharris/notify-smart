@@ -116,7 +116,8 @@ def notify_email(cfg, body):
         smtp_send(server,
                   cfg.get('email', 'from_email'),
                   cfg.get('email', 'to_email'),
-                  body=body)
+                  body=body,
+                  subject='IRC')
     finally:
         smtp_close(server)
 
