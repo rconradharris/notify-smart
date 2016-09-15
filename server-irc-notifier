@@ -153,18 +153,18 @@ class EmailNotifier(Notifier):
             debuglevel = cfg.getint('email', 'debuglevel')
         except ConfigParser.NoOptionError:
             debuglevel = DEFAULT_DEBUGLEVEL
-        server = self.smtp_connect(host,
-                                   cfg.get('email', 'smtp_user'),
-                                   cfg.get('email', 'smtp_password'),
-                                   debuglevel=debuglevel)
+        server = self._smtp_connect(host,
+                                    cfg.get('email', 'smtp_user'),
+                                    cfg.get('email', 'smtp_password'),
+                                    debuglevel=debuglevel)
         try:
-            self.smtp_send(server,
-                           cfg.get('email', 'from_email'),
-                           cfg.get('email', 'to_email'),
-                           body=msg,
-                           subject=subject)
+            self._smtp_send(server,
+                            cfg.get('email', 'from_email'),
+                            cfg.get('email', 'to_email'),
+                            body=msg,
+                            subject=subject)
         finally:
-            self.smtp_close(server)
+            self._smtp_close(server)
 
 
 NOTIFIERS = {
