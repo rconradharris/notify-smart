@@ -154,8 +154,6 @@ class EmailNotifier(Notifier):
         server.sendmail(from_email, [to_email], msg.as_string())
 
     def notify(self, msg):
-        print "Sending Notification: ", msg
-
         try:
             debuglevel = self.cfg.getint('email', 'debuglevel')
         except ConfigParser.NoOptionError:
@@ -230,8 +228,9 @@ def start(cfg):
             last_fnotify_mtime = cur_fnotify_mtime
 
             with open(FNOTIFY_LOG) as f:
-                last_line =  f.read().splitlines()[-1]
-                notifier.notify(last_line)
+                msg =  f.read().splitlines()[-1]
+                print "Sending Notification: ", msg
+                notifier.notify(msg)
 
         time.sleep(poll_interval)
 
