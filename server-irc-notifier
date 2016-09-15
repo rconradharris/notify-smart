@@ -100,7 +100,7 @@ def get_is_idle(cfg, idle_time, last_updated):
                     idle_time, idle_threshold))
 
 
-def notify_email(cfg, body):
+def notify_email(cfg, body, subject):
     print "Sending Notification: ", body
     host = cfg.get('email', 'smtp_host')
     assert host
@@ -117,7 +117,7 @@ def notify_email(cfg, body):
                   cfg.get('email', 'from_email'),
                   cfg.get('email', 'to_email'),
                   body=body,
-                  subject='IRC')
+                  subject=subject)
     finally:
         smtp_close(server)
 
@@ -144,14 +144,7 @@ def smtp_send(server, from_email, to_email, body=None, subject=None):
     server.sendmail(from_email, [to_email], msg.as_string())
 
 
-def main():
-    if not os.path.exists(CONFIG_FILE):
-        print "error: required config file not found at '{}'".format(CONFIG_FILE)
-        sys.exit(1)
-
-    cfg = ConfigParser.ConfigParser()
-    cfg.read(CONFIG_FILE)
-
+def start(cfg):
     try:
         poll_interval  = cfg.getfloat('general', 'poll_interval')
     except ConfigParser.NoOptionError:
@@ -175,10 +168,30 @@ def main():
 
             with open(FNOTIFY_LOG) as f:
                 last_line =  f.read().splitlines()[-1]
-                notify_email(cfg, last_line)
+                notify_email(cfg, last_line, 'IRC')
 
         time.sleep(poll_interval)
 
 
+def usage():
+        print "server-irc-notifier <start|testmsg>"
+        sys.exit(1)
+
+
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) < 2:
+        usage()
+
+    if not os.path.exists(CONFIG_FILE):
+        print "error: required config file not found at '{}'".format(CONFIG_FILE)
+        sys.exit(1)
+
+    cfg = ConfigParser.ConfigParser()
+    cfg.read(CONFIG_FILE)
+
+    if sys.argv[1] == 'start':
+        start(cfg)
+    elif sys.argv[1] == 'testmsg':
+        notify_email(cfg, 'Test body', 'Testing server-irc-notifier')
+    else:
+        usage()
