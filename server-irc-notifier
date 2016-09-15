@@ -25,7 +25,10 @@ CONFIG_FILE = '.irssi/server-irc-notifier.cfg'
 IDLE_TIME_PATH = '.irssi/idle-time'
 FORCE_IDLE_PATH = '.irssi/force-idle'
 FNOTIFY_LOG = '.irssi/fnotify'
+
+DEFAULT_DEBUGLEVEL = 0
 DEFAULT_POLL_INTERVAL = 1.0
+DEFAULT_SUBJECT = '[IRC]'
 
 
 def get_idle_time_and_last_updated():
@@ -100,14 +103,17 @@ def get_is_idle(cfg, idle_time, last_updated):
                     idle_time, idle_threshold))
 
 
-def notify_email(cfg, body, subject):
+def notify_email(cfg, body):
     print "Sending Notification: ", body
     host = cfg.get('email', 'smtp_host')
-    assert host
+    try:
+        subject = cfg.get('email', 'subject')
+    except ConfigParser.NoOptionError:
+        subject = DEFAULT_SUBJECT
     try:
         debuglevel = cfg.getint('email', 'debuglevel')
     except ConfigParser.NoOptionError:
-        debuglevel = 0
+        debuglevel = DEFAULT_DEBUGLEVEL
     server = smtp_connect(host,
                           cfg.get('email', 'smtp_user'),
                           cfg.get('email', 'smtp_password'),
@@ -168,7 +174,7 @@ def start(cfg):
 
             with open(FNOTIFY_LOG) as f:
                 last_line =  f.read().splitlines()[-1]
-                notify_email(cfg, last_line, 'IRC')
+                notify_email(cfg, last_line)
 
         time.sleep(poll_interval)
 
@@ -192,6 +198,6 @@ if __name__ == '__main__':
     if sys.argv[1] == 'start':
         start(cfg)
     elif sys.argv[1] == 'testmsg':
-        notify_email(cfg, 'Test body', 'Testing server-irc-notifier')
+        notify_email(cfg, 'Test body')
     else:
         usage()
