@@ -3,6 +3,7 @@
 idle = 60
 poll_interval = 1.0
 notifier = email
+title = <YOUR-TITLE-OVERRIDE-HERE>
 
 [email]
 smtp_host = <YOUR-SMTP-HOST-HERE>
@@ -10,7 +11,9 @@ smtp_password = <YOUR-PASSWORD-HERE>
 smtp_user = <YOUR-USERNAME-HERE>
 from_email = <YOUR-EMAIL-HERE>
 to_email = <YOUR-SMS-EMAIL-GATEWAY-ADDRESS-HERE>
-subject = <YOUR-SUBJECT-OVERRIDE-HERE>
-
 # Set to 1 to output SMTP debugging info
 debuglevel=0
+
+[pushover]
+user_api_key = <YOUR-PUSHOVER-USER-API-KEY-HERE>
+app_token = <YOUR-PUSHOVER-APP-TOKEN-HERE>

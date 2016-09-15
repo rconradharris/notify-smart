@@ -13,9 +13,8 @@ Configure using .irssi/server-irc-notifier.cfg
 """
 
 import ConfigParser
-from email.mime.text import MIMEText
 import os
-import smtplib
+import random
 import subprocess
 import sys
 import time
@@ -28,7 +27,7 @@ FNOTIFY_LOG = '.irssi/fnotify'
 
 DEFAULT_DEBUGLEVEL = 0
 DEFAULT_POLL_INTERVAL = 1.0
-DEFAULT_SUBJECT = '[IRC]'
+DEFAULT_TITLE = '[IRC]'
 
 
 def get_idle_time_and_last_updated():
@@ -103,12 +102,22 @@ def get_is_idle(cfg, idle_time, last_updated):
                     idle_time, idle_threshold))
 
 
+class NotifierError(Exception):
+    pass
+
+
 class Notifier(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
     def notify(self, msg):
         pass
+
+    def _get_title(self):
+        try:
+            return self.cfg.get('general', 'title')
+        except ConfigParser.NoOptionError:
+            return DEFAULT_TITLE
 
     @staticmethod
     def get(cfg):
@@ -120,6 +129,8 @@ class Notifier(object):
 class EmailNotifier(Notifier):
     @staticmethod
     def _smtp_connect(host, user, password, debuglevel=0):
+        import smtplib
+
         server = smtplib.SMTP(host)
         server.set_debuglevel(debuglevel)
         server.ehlo()
@@ -133,6 +144,8 @@ class EmailNotifier(Notifier):
 
     @staticmethod
     def _smtp_send(server, from_email, to_email, body=None, subject=None):
+        from email.mime.text import MIMEText
+
         msg = MIMEText(body)
         if subject:
             msg['Subject'] = subject
@@ -141,33 +154,54 @@ class EmailNotifier(Notifier):
         server.sendmail(from_email, [to_email], msg.as_string())
 
     def notify(self, msg):
-        cfg = self.cfg
         print "Sending Notification: ", msg
-        host = cfg.get('email', 'smtp_host')
+
         try:
-            subject = cfg.get('email', 'subject')
-        except ConfigParser.NoOptionError:
-            subject = DEFAULT_SUBJECT
-        try:
-            debuglevel = cfg.getint('email', 'debuglevel')
+            debuglevel = self.cfg.getint('email', 'debuglevel')
         except ConfigParser.NoOptionError:
             debuglevel = DEFAULT_DEBUGLEVEL
-        server = self._smtp_connect(host,
-                                    cfg.get('email', 'smtp_user'),
-                                    cfg.get('email', 'smtp_password'),
-                                    debuglevel=debuglevel)
+
+        try:
+            server = self._smtp_connect(self.cfg.get('email', 'smtp_host'),
+                                        self.cfg.get('email', 'smtp_user'),
+                                        self.cfg.get('email', 'smtp_password'),
+                                        debuglevel=debuglevel)
+        except:
+            raise NotifierError
+
         try:
             self._smtp_send(server,
-                            cfg.get('email', 'from_email'),
-                            cfg.get('email', 'to_email'),
+                            self.cfg.get('email', 'from_email'),
+                            self.cfg.get('email', 'to_email'),
                             body=msg,
-                            subject=subject)
+                            subject=self._get_title())
+        except:
+            raise NotifierError
         finally:
             self._smtp_close(server)
 
 
+class PushoverNotifier(Notifier):
+    API_URL = 'https://api.pushover.net/1/messages.json'
+
+    def notify(self, msg):
+        import requests
+
+        data = {
+            'token': self.cfg.get('pushover', 'app_token'),
+            'user': self.cfg.get('pushover', 'user_api_key'),
+            'title': self._get_title(),
+            'message': msg
+        }
+
+        resp = requests.post(self.API_URL, data=data)
+        if not resp.ok:
+            raise NotifierError
+
+
 NOTIFIERS = {
-    'email': EmailNotifier
+    'email': EmailNotifier,
+    'pushover': PushoverNotifier
 }
 
 
@@ -202,8 +236,14 @@ def start(cfg):
         time.sleep(poll_interval)
 
 
+def test(cfg):
+    notifier = Notifier.get(cfg)
+    notifier.notify(random.choice(['apple', 'blackberry', 'cherry',
+                                   'dewberry', 'elderberry']))
+
+
 def usage():
-        print "server-irc-notifier <start|testmsg>"
+        print "server-irc-notifier <start|test>"
         sys.exit(1)
 
 
@@ -220,7 +260,7 @@ if __name__ == '__main__':
 
     if sys.argv[1] == 'start':
         start(cfg)
-    elif sys.argv[1] == 'testmsg':
-        notify_email(cfg, 'Test body')
+    elif sys.argv[1] == 'test':
+        test(cfg)
     else:
         usage()
