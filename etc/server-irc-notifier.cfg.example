@@ -2,6 +2,7 @@
 [general]
 idle = 60
 poll_interval = 1.0
+notifier = email
 
 [email]
 smtp_host = <YOUR-SMTP-HOST-HERE>

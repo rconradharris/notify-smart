@@ -103,54 +103,78 @@ def get_is_idle(cfg, idle_time, last_updated):
                     idle_time, idle_threshold))
 
 
-def notify_email(cfg, body):
-    print "Sending Notification: ", body
-    host = cfg.get('email', 'smtp_host')
-    try:
-        subject = cfg.get('email', 'subject')
-    except ConfigParser.NoOptionError:
-        subject = DEFAULT_SUBJECT
-    try:
-        debuglevel = cfg.getint('email', 'debuglevel')
-    except ConfigParser.NoOptionError:
-        debuglevel = DEFAULT_DEBUGLEVEL
-    server = smtp_connect(host,
-                          cfg.get('email', 'smtp_user'),
-                          cfg.get('email', 'smtp_password'),
-                          debuglevel=debuglevel)
-    try:
-        smtp_send(server,
-                  cfg.get('email', 'from_email'),
-                  cfg.get('email', 'to_email'),
-                  body=body,
-                  subject=subject)
-    finally:
-        smtp_close(server)
+class Notifier(object):
+    def __init__(self, cfg):
+        self.cfg = cfg
+
+    def notify(self, msg):
+        pass
+
+    @staticmethod
+    def get(cfg):
+        name = cfg.get('general', 'notifier')
+        cls = NOTIFIERS[name]
+        return cls(cfg)
 
 
-def smtp_connect(host, user, password, debuglevel=0):
-    server = smtplib.SMTP(host)
-    server.set_debuglevel(debuglevel)
-    server.ehlo()
-    server.starttls()
-    server.login(user, password)
-    return server
+class EmailNotifier(Notifier):
+    @staticmethod
+    def _smtp_connect(self, host, user, password, debuglevel=0):
+        server = smtplib.SMTP(host)
+        server.set_debuglevel(debuglevel)
+        server.ehlo()
+        server.starttls()
+        server.login(user, password)
+        return server
+
+    @staticmethod
+    def _smtp_close(self, server):
+        server.quit()
+
+    @staticmethod
+    def _smtp_send(self, server, from_email, to_email, body=None,
+                   subject=None):
+        msg = MIMEText(body)
+        if subject:
+            msg['Subject'] = subject
+        msg['From'] = from_email
+        msg['To'] = to_email
+        server.sendmail(from_email, [to_email], msg.as_string())
+
+    def notify(self, msg):
+        cfg = self.cfg
+        print "Sending Notification: ", msg
+        host = cfg.get('email', 'smtp_host')
+        try:
+            subject = cfg.get('email', 'subject')
+        except ConfigParser.NoOptionError:
+            subject = DEFAULT_SUBJECT
+        try:
+            debuglevel = cfg.getint('email', 'debuglevel')
+        except ConfigParser.NoOptionError:
+            debuglevel = DEFAULT_DEBUGLEVEL
+        server = self.smtp_connect(host,
+                                   cfg.get('email', 'smtp_user'),
+                                   cfg.get('email', 'smtp_password'),
+                                   debuglevel=debuglevel)
+        try:
+            self.smtp_send(server,
+                           cfg.get('email', 'from_email'),
+                           cfg.get('email', 'to_email'),
+                           body=msg,
+                           subject=subject)
+        finally:
+            self.smtp_close(server)
 
 
-def smtp_close(server):
-    server.quit()
-
-
-def smtp_send(server, from_email, to_email, body=None, subject=None):
-    msg = MIMEText(body)
-    if subject:
-        msg['Subject'] = subject
-    msg['From'] = from_email
-    msg['To'] = to_email
-    server.sendmail(from_email, [to_email], msg.as_string())
+NOTIFIERS = {
+    'email': EmailNotifier
+}
 
 
 def start(cfg):
+    notifier = Notifier.get(cfg)
+
     try:
         poll_interval  = cfg.getfloat('general', 'poll_interval')
     except ConfigParser.NoOptionError:
@@ -174,7 +198,7 @@ def start(cfg):
 
             with open(FNOTIFY_LOG) as f:
                 last_line =  f.read().splitlines()[-1]
-                notify_email(cfg, last_line)
+                notifier.notify(last_line)
 
         time.sleep(poll_interval)
 
