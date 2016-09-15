@@ -119,7 +119,7 @@ class Notifier(object):
 
 class EmailNotifier(Notifier):
     @staticmethod
-    def _smtp_connect(self, host, user, password, debuglevel=0):
+    def _smtp_connect(host, user, password, debuglevel=0):
         server = smtplib.SMTP(host)
         server.set_debuglevel(debuglevel)
         server.ehlo()
@@ -128,12 +128,11 @@ class EmailNotifier(Notifier):
         return server
 
     @staticmethod
-    def _smtp_close(self, server):
+    def _smtp_close(server):
         server.quit()
 
     @staticmethod
-    def _smtp_send(self, server, from_email, to_email, body=None,
-                   subject=None):
+    def _smtp_send(server, from_email, to_email, body=None, subject=None):
         msg = MIMEText(body)
         if subject:
             msg['Subject'] = subject
