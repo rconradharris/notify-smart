@@ -10,7 +10,7 @@
 # Usage: client-irc-notifier <auto|away|here|start|stop>"
 
 IRC_HOST=irc
-NOTIFIER=/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier
+NOTIFIER=/usr/local/bin/terminal-notifier
 
 
 function _ssh_irc_host() {
@@ -46,7 +46,6 @@ function stop() {
 
 function start() {
     [ -e $NOTIFIER ] || exit 1
-
     stop  # Kill any existing processes before starting
 
     # Emit terminal-notifier notifications anytime a new line is added to
