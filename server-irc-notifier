@@ -217,9 +217,10 @@ def start(cfg):
         idle_time, last_updated = get_idle_time_and_last_updated()
         is_idle, reason = get_is_idle(cfg, idle_time, last_updated)
 
-        print "IDLE_TIME = {:<8.2f} LAST UPDATED = {:<8.2f} IDLE = {:<8}"\
-              "REASON = {}".format(idle_time, last_updated, str(is_idle),
-                                   reason)
+        if idle_time is not None:
+            print "IDLE_TIME = {:<8.2f} LAST UPDATED = {:<8.2f} IDLE = {:<8}"\
+                  "REASON = {}".format(idle_time, last_updated, str(is_idle),
+                                       reason)
 
         # Only process if fnotify file was updated since last read...
         cur_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
