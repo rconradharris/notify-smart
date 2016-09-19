@@ -217,6 +217,12 @@ def start(cfg):
         idle_time, last_updated = get_idle_time_and_last_updated()
         is_idle, reason = get_is_idle(cfg, idle_time, last_updated)
 
+        # In case idle_time file doesn't exist yet...
+        if idle_time is None:
+            idle_time = -1.0
+        if last_updated is None:
+            last_updated = -1.0
+
         print "IDLE_TIME = {:<8.2f} LAST UPDATED = {:<8.2f} IDLE = {:<8}"\
               "REASON = {}".format(idle_time, last_updated, str(is_idle),
                                    reason)
