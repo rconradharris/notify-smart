@@ -32,15 +32,14 @@ DEFAULT_TITLE = '[IRC]'
 
 def get_idle_time_and_last_updated():
     if os.path.exists(IDLE_TIME_PATH):
+        last_updated = time.time() - os.path.getmtime(IDLE_TIME_PATH)
         with open(IDLE_TIME_PATH) as f:
             try:
                 idle_time = float(f.read().strip())
+                return idle_time, last_updated
             except ValueError:
                 pass
-            else:
-                last_updated = time.time() - os.path.getmtime(IDLE_TIME_PATH)
-                return (idle_time, last_updated)
-    return (None, None)
+    return -1, -1
 
 
 def get_is_idle(cfg, idle_time, last_updated):
@@ -83,7 +82,7 @@ def get_is_idle(cfg, idle_time, last_updated):
             # Fall through to normal logic...
 
     # Ensure idle-time file exists...
-    if not idle_time and not last_updated:
+    if idle_time < 0 or last_updated < 0:
         return True, "idle-time file doesn't exist or is empty"
 
     idle_threshold  = cfg.getint('general', 'idle')
@@ -216,12 +215,6 @@ def start(cfg):
     while True:
         idle_time, last_updated = get_idle_time_and_last_updated()
         is_idle, reason = get_is_idle(cfg, idle_time, last_updated)
-
-        # In case idle_time file doesn't exist yet...
-        if idle_time is None:
-            idle_time = -1.0
-        if last_updated is None:
-            last_updated = -1.0
 
         print "IDLE_TIME = {:<8.2f} LAST UPDATED = {:<8.2f} IDLE = {:<8}"\
               "REASON = {}".format(idle_time, last_updated, str(is_idle),
