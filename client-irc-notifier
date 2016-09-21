@@ -50,9 +50,9 @@ function start() {
 
     # Emit terminal-notifier notifications anytime a new line is added to
     # fnotifier file
-    (_ssh_irc_host "tail -n0 -f .irssi/fnotify " | \
-       while read message; do                    \
-         echo $message | $NOTIFIER -group IRC -title IRC 2>&1 > /dev/null; \
+    (_ssh_irc_host "tail -n0 -f .irssi/fnotify " |
+       while read message; do
+         echo $message | $NOTIFIER -group IRC -title IRC 2>&1 > /dev/null
        done)&
 
     # Update remote server with our current idle time
@@ -62,6 +62,9 @@ function start() {
     #
     # Write pidfile because `python -u` is not greppable when killing
     # processes
+    #
+    # /usr/bin/python ensures we get Mac's system Python instead of
+    # Homebrew's version. This is necessary to use the Quartz APIs.
     (/usr/bin/python -u <<EOF |
 import os, sys, time
 from Quartz.CoreGraphics import CGEventSourceSecondsSinceLastEventType
