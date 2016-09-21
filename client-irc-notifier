@@ -62,7 +62,7 @@ function start() {
     #
     # Write pidfile because `python -u` is not greppable when killing
     # processes
-    (python -u <<EOF |
+    (/usr/bin/python -u <<EOF |
 import os, sys, time
 from Quartz.CoreGraphics import CGEventSourceSecondsSinceLastEventType
 pidfile = '/tmp/python-idle-time.pid'
