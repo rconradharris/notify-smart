@@ -27,78 +27,51 @@ FNOTIFY_LOG = '.irssi/fnotify'
 
 DEFAULT_DEBUGLEVEL = 0
 DEFAULT_POLL_INTERVAL = 1.0
+DEFAULT_IDLE_THRESHOLD = 60.0
 DEFAULT_TITLE = '[IRC]'
 
+CONST_IDLE = 9999.0  # For our purposes, this will do as a maxint
+CONST_NOT_IDLE = -1.0
 
-def get_idle_time_and_last_updated():
-    if os.path.exists(IDLE_TIME_PATH):
-        last_updated = time.time() - os.path.getmtime(IDLE_TIME_PATH)
-        with open(IDLE_TIME_PATH) as f:
+
+def safe_read_float(filename):
+    """Read a file and interpret value as a float.
+
+    Returns `None` if file is not present, or value is invalid.
+    """
+    if os.path.exists(filename):
+        with open(filename) as f:
             try:
-                idle_time = float(f.read().strip())
-                return idle_time, last_updated
+                return float(f.read().strip())
             except ValueError:
                 pass
-    return -1, -1
+    return None
 
 
-def get_is_idle(cfg, idle_time, last_updated):
-    """Determine whether the user is considered idle.
-
-    A script on the users laptop is updating the local `idle-time` file.
-
-    If the `idle-time` file doesn't exist, then the user is by definition idle
-    (because they haven't logged in to create it).
-
-    Alternatively, the user can be 'forcing' a particular mode; this is
-    signaled by the `force-idle` file with the following values:
-
-            0 NORMAL
-            1 FORCE IDLE
-            2 FORCE NOT IDLE
-
-    If the `idle-time` file is present, we have two possibilities:
-
-        1) File hasn't been touched in a while: This means the laptop is no
-        longer active (from our perspective) and we should consider the user
-        idle.
-
-        2) The file has been touched recently: In this case the laptop is
-        active (since we're receiving idle reports), however the user might
-        not be at their desk. So in this case, use the contents of `idle-time`
-        file to determine what to do.
+def get_idle_time():
+    """Return a time in seconds since a user was last seen or CONST_IDLE or
+    CONST_NOT_IDLE if we're forcing a particular value.
     """
-
     # Check for force values first...
-    if os.path.exists(FORCE_IDLE_PATH):
-        with open(FORCE_IDLE_PATH) as f:
-            force_val = int(f.read().strip())
-        if force_val == 1:
-            return True, 'Forced'
-        elif force_val == 2:
-            return False, 'Forced'
-        else:
-            os.unlink(FORCE_IDLE_PATH)
-            # Fall through to normal logic...
+    force_val = safe_read_float(FORCE_IDLE_PATH)
+    if force_val is not None:
+        if force_val == 1.0:
+            return CONST_IDLE
+        elif force_val == 2.0:
+            return CONST_NOT_IDLE
 
-    # Ensure idle-time file exists...
-    if idle_time < 0 or last_updated < 0:
-        return True, "idle-time file doesn't exist or is empty"
+    idle_time = safe_read_float(IDLE_TIME_PATH)
 
-    idle_threshold  = cfg.getint('general', 'idle')
+    # Ensure idle-time file is present...
+    if idle_time is None:
+        return CONST_IDLE
 
-    # Ensure idle-time file isn't stale
-    if last_updated > idle_threshold:
-        return (True, 'idle-time is stale ({:.2f} > {})'.format(
-                    last_updated, idle_threshold))
+    # Check when idle-time file was last-updated
+    last_updated = time.time() - os.path.getmtime(IDLE_TIME_PATH)
 
-    # Ensure contents (idle-time) are under threshold
-    if idle_time > idle_threshold:
-        return (True,  'idle threshold exceeded ({:.2f} > {})'.format(
-                    idle_time, idle_threshold))
-    else:
-        return (False, 'below threshold ({:.2f} <= {})'.format(
-                    idle_time, idle_threshold))
+    # If file is 'stale', then use last_updated, otherwise return the time in
+    # the idle-time file
+    return last_updated if last_updated > idle_time else idle_time
 
 
 class NotifierError(Exception):
@@ -210,15 +183,21 @@ def start(cfg):
     except ConfigParser.NoOptionError:
         poll_interval = DEFAULT_POLL_INTERVAL
 
+    try:
+        threshold  = cfg.getfloat('general', 'idle')
+    except ConfigParser.NoOptionError:
+        threshold = DEFAULT_IDLE_THRESHOLD
+
     last_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
 
     while True:
-        idle_time, last_updated = get_idle_time_and_last_updated()
-        is_idle, reason = get_is_idle(cfg, idle_time, last_updated)
+        idle_time = get_idle_time()
+        is_idle = idle_time > threshold
+        status = 'IDLE' if is_idle else 'NOT IDLE'
 
-        print "IDLE_TIME = {:<8.2f} LAST UPDATED = {:<8.2f} IDLE = {:<8}"\
-              "REASON = {}".format(idle_time, last_updated, str(is_idle),
-                                   reason)
+        print "LAST SEEN = {:<12.1f} "\
+              "IDLE THRESHOLD = {:<12.1f} "\
+              "STATUS = {:<8}".format(idle_time, threshold, status)
 
         # Only process if fnotify file was updated since last read...
         cur_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
