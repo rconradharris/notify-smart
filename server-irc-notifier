@@ -175,48 +175,41 @@ NOTIFIERS = {
 }
 
 
-def start(cfg):
-    notifier = Notifier.get(cfg)
+LAST_MTIME = 0
 
-    try:
-        poll_interval  = cfg.getfloat('general', 'poll_interval')
-    except ConfigParser.NoOptionError:
-        poll_interval = DEFAULT_POLL_INTERVAL
+
+def process(cfg):
+    global LAST_MTIME
+
+    if not os.path.exists(FNOTIFY_LOG):
+        print "warning: No fnotify file present..."
+        return
+
+    idle_time = get_idle_time()
 
     try:
         threshold  = cfg.getfloat('general', 'idle')
     except ConfigParser.NoOptionError:
         threshold = DEFAULT_IDLE_THRESHOLD
 
-    last_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
+    print "IDLE TIME = {:<10.1f} "\
+          "THRESHOLD = {:<10.1f} "\
+          "STATUS = {:<10}".format(
+                  idle_time,
+                  threshold,
+                  'IDLE' if idle_time > threshold else 'NOT IDLE')
 
-    while True:
-        idle_time = get_idle_time()
-        is_idle = idle_time > threshold
-        status = 'IDLE' if is_idle else 'NOT IDLE'
+    mtime = os.path.getmtime(FNOTIFY_LOG)
 
-        print "LAST SEEN = {:<12.1f} "\
-              "IDLE THRESHOLD = {:<12.1f} "\
-              "STATUS = {:<8}".format(idle_time, threshold, status)
+    if mtime > LAST_MTIME:
+        # Update LAST_MTIME to ensure we don't resend the msg
+        LAST_MTIME = mtime
 
-        # Only process if fnotify file was updated since last read...
-        cur_fnotify_mtime =  os.path.getmtime(FNOTIFY_LOG)
-
-        if is_idle and (cur_fnotify_mtime != last_fnotify_mtime):
-            last_fnotify_mtime = cur_fnotify_mtime
-
+        if idle_time > threshold:
             with open(FNOTIFY_LOG) as f:
                 msg =  f.read().splitlines()[-1]
                 print "Sending Notification: ", msg
-                notifier.notify(msg)
-
-        time.sleep(poll_interval)
-
-
-def test(cfg):
-    notifier = Notifier.get(cfg)
-    notifier.notify(random.choice(['apple', 'blackberry', 'cherry',
-                                   'dewberry', 'elderberry']))
+                Notifier.get(cfg).notify(msg)
 
 
 def usage():
@@ -236,8 +229,16 @@ if __name__ == '__main__':
     cfg.read(CONFIG_FILE)
 
     if sys.argv[1] == 'start':
-        start(cfg)
+        try:
+            poll_interval  = cfg.getfloat('general', 'poll_interval')
+        except ConfigParser.NoOptionError:
+            poll_interval = DEFAULT_POLL_INTERVAL
+        while True:
+            process(cfg)
+            time.sleep(poll_interval)
     elif sys.argv[1] == 'test':
-        test(cfg)
+        notifier = Notifier.get(cfg)
+        notifier.notify(random.choice(['apple', 'blackberry', 'cherry',
+                                       'dewberry', 'elderberry']))
     else:
         usage()
