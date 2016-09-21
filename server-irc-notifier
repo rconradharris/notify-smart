@@ -175,7 +175,7 @@ NOTIFIERS = {
 }
 
 
-LAST_MTIME = 0
+LAST_MTIME = None
 
 
 def process(cfg):
@@ -200,6 +200,10 @@ def process(cfg):
                   'IDLE' if idle_time > threshold else 'NOT IDLE')
 
     mtime = os.path.getmtime(FNOTIFY_LOG)
+
+    # Don't send last message recv'd on startup...
+    if LAST_MTIME is None:
+        LAST_MTIME = mtime
 
     if mtime > LAST_MTIME:
         # Update LAST_MTIME to ensure we don't resend the msg
