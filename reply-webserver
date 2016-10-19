@@ -2,8 +2,14 @@
 """
 Webserver to serve the reply form.
 """
+import os
+import time
+
 import flask
+
 app = flask.Flask(__name__)
+
+REPLY_DIRECTORY = os.path.expanduser('~/.irssi/reply-data')
 
 FORM = """\
 <html>
@@ -26,9 +32,15 @@ def success():
 def handle_reply(target):
     if flask.request.method == 'POST':
         reply = flask.request.form['reply']
-        with open('test.log', 'a') as f:
-            line = " ".join([target, reply])
-            f.write(line + '\n')
+
+        # Write our reply to reply-data directory which is the communication
+        # channel between the webserver and the reply.pl irssi plugin
+        if not os.path.exists(REPLY_DIRECTORY):
+            os.makedirs(REPLY_DIRECTORY)
+        path = os.path.join(REPLY_DIRECTORY, str(time.time()))
+        with open(path, 'w') as f:
+            f.write(" ".join([target, reply]) + '\n')
+
         return flask.redirect(flask.url_for('success'))
     else:
         return FORM.format(target=target)

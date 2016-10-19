@@ -21,10 +21,11 @@ import time
 import urllib
 
 
-CONFIG_FILE = '.irssi/server-irc-notifier.cfg'
-IDLE_TIME_PATH = '.irssi/idle-time'
-FORCE_IDLE_PATH = '.irssi/force-idle'
-FNOTIFY_LOG = '.irssi/fnotify'
+CONFIG_PATH = os.path.expanduser('~/.irssi')
+CONFIG_FILE = os.path.join(CONFIG_PATH, 'server-irc-notifier.cfg')
+IDLE_TIME_FILE = os.path.join(CONFIG_PATH, 'idle-time')
+FORCE_IDLE_FILE = os.path.join(CONFIG_PATH, 'force-idle')
+FNOTIFY_LOG = os.path.join(CONFIG_PATH, 'fnotify')
 
 DEFAULT_DEBUGLEVEL = 0
 DEFAULT_POLL_INTERVAL = 1.0
@@ -54,21 +55,21 @@ def get_idle_time():
     CONST_NOT_IDLE if we're forcing a particular value.
     """
     # Check for force values first...
-    force_val = safe_read_float(FORCE_IDLE_PATH)
+    force_val = safe_read_float(FORCE_IDLE_FILE)
     if force_val is not None:
         if force_val == 1.0:
             return CONST_IDLE
         elif force_val == 2.0:
             return CONST_NOT_IDLE
 
-    idle_time = safe_read_float(IDLE_TIME_PATH)
+    idle_time = safe_read_float(IDLE_TIME_FILE)
 
     # Ensure idle-time file is present...
     if idle_time is None:
         return CONST_IDLE
 
     # Check when idle-time file was last-updated
-    last_updated = time.time() - os.path.getmtime(IDLE_TIME_PATH)
+    last_updated = time.time() - os.path.getmtime(IDLE_TIME_FILE)
 
     # If file is 'stale', then use last_updated, otherwise return the time in
     # the idle-time file
