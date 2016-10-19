@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+"""
+Webserver to serve the reply form.
+"""
+import flask
+app = flask.Flask(__name__)
+
+FORM = """\
+<html>
+    <title>{target} Reply</title>
+    <form method="post">
+        <label>{target}</label>
+        <input type="text" name="reply">
+        <input type="submit" value="Reply">
+    </form>
+</html>
+"""
+
+
+@app.route('/success')
+def success():
+    return "Reply sent!"
+
+
+@app.route('/<target>', methods=['GET', 'POST'])
+def handle_reply(target):
+    if flask.request.method == 'POST':
+        reply = flask.request.form['reply']
+        with open('test.log', 'a') as f:
+            line = " ".join([target, reply])
+            f.write(line + '\n')
+        return flask.redirect(flask.url_for('success'))
+    else:
+        return FORM.format(target=target)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)

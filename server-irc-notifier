@@ -18,6 +18,7 @@ import random
 import subprocess
 import sys
 import time
+import urllib
 
 
 CONFIG_FILE = '.irssi/server-irc-notifier.cfg'
@@ -193,7 +194,7 @@ def add_reply_link(cfg, msg):
     if not reply_url.endswith('/'):
         reply_url += '/'
     target = msg.split(' ', 1)[0]
-    reply_url += target
+    reply_url += urllib.quote(target)
     return " ".join([msg, reply_url])
 
 
