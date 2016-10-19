@@ -192,7 +192,7 @@ def add_reply_link(cfg, msg):
         return msg
     if not reply_url.endswith('/'):
         reply_url += '/'
-    target = msg.split(' ', 1)
+    target = msg.split(' ', 1)[0]
     reply_url += target
     return " ".join([msg, reply_url])
 
