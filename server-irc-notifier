@@ -178,6 +178,29 @@ NOTIFIERS = {
 LAST_MTIME = None
 
 
+def add_reply_link(cfg, msg):
+    """
+    fnotify.pl produces two different types of msg formats:
+    hilite:
+        #channel < user1> user2: text
+    privmsg:
+        user2 text
+    """
+    try:
+        reply_url = cfg.get('general', 'reply_url')
+    except ConfigParser.NoOptionError:
+        return msg
+    if not reply_url.endswith('/'):
+        reply_url += '/'
+    target = msg.split(' ', 1)
+    reply_url += target
+    return " ".join([msg, reply_url])
+
+
+def format_message(cfg, msg):
+    return add_reply_link(cfg, msg)
+
+
 def process(cfg):
     global LAST_MTIME
 
@@ -212,6 +235,7 @@ def process(cfg):
         if idle_time > threshold:
             with open(FNOTIFY_LOG) as f:
                 msg =  f.read().splitlines()[-1]
+                msg = format_message(cfg, msg)
                 print "Sending Notification: ", msg
                 Notifier.get(cfg).notify(msg)
 
