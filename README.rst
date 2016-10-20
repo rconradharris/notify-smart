@@ -20,12 +20,13 @@ click that directs to a web page where you can enter a reply.
 Requirements
 ============
 
-* irssi
-* fnotify.pl
-* terminal-notifier (get from Homebrew)
-* GNU screen or tmux on the server (since ``server-irc-notifier`` needs to run
-  persistently even when you logout)
-* Python's requests module
+* ``irssi``
+* ``fnotify.pl``
+* ``terminal-notifier`` (get from Homebrew)
+* GNU ``screen`` or ``tmux`` on the server (since ``server-irc-notifier``
+  needs to run persistently even when you logout)
+* Python's ``requests`` module
+* Python's ``flask`` module (if using the reply feature)
 
 
 Design
