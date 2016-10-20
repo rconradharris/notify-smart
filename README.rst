@@ -1,6 +1,6 @@
-============
-notify-smart
-============
+==================
+smart-irc-notifier
+==================
 
 
 Notify you of IRC messages both locally and, when you're away from the
@@ -21,7 +21,6 @@ Requirements
 ============
 
 * ``irssi``
-* ``fnotify.pl``
 * ``terminal-notifier`` (get from Homebrew)
 * GNU ``screen`` or ``tmux`` on the server (since ``server-irc-notifier``
   needs to run persistently even when you logout)
@@ -78,7 +77,11 @@ The recommended way of running ``client-irc-notifier`` is by using a
 Server-side
 -----------
 
-First you need to setup ``fnotify.pl``.
+First you need to setup ``fnotify.pl``. You can do this by copying the script
+which is in the ``scripts`` directory into ``.irssi/scripts``. Afterwards load
+it by running::
+
+    /load fnotify.pl
 
 Next you need to run create a config file in ``.irssi/server-irc-notifier.cfg``,
 use ``examples`` directory for help.
