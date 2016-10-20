@@ -99,7 +99,8 @@ outbound HTTP traffic on port 5000 is allowed.
 Add the ``reply_server`` config to the configuration file and make sure it is
 set to the public IP address of your IRC server.
 
-Finally, copy ``reply.pl`` script into your ``.irssi/scripts`` directory and run::
+Finally, copy ``reply.pl`` script into your ``.irssi/scripts`` directory, edit
+it to fill in the ``$SERVER`` variable, and run it::
 
     /load reply.pl
 
