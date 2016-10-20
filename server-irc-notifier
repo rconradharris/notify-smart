@@ -84,7 +84,7 @@ class Notifier(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
-    def notify(self, msg):
+    def notify(self, msg, url=None, url_title=None):
         pass
 
     def _get_title(self):
@@ -127,7 +127,7 @@ class EmailNotifier(Notifier):
         msg['To'] = to_email
         server.sendmail(from_email, [to_email], msg.as_string())
 
-    def notify(self, msg):
+    def notify(self, msg, url=None, url_title=None):
         try:
             debuglevel = self.cfg.getint('email', 'debuglevel')
         except ConfigParser.NoOptionError:
@@ -141,11 +141,15 @@ class EmailNotifier(Notifier):
         except:
             raise NotifierError
 
+        parts = [msg]
+        if url:
+            parts.append(url)
+
         try:
             self._smtp_send(server,
                             self.cfg.get('email', 'from_email'),
                             self.cfg.get('email', 'to_email'),
-                            body=msg,
+                            body=' '.join(parts),
                             subject=self._get_title())
         except:
             raise NotifierError
@@ -156,15 +160,20 @@ class EmailNotifier(Notifier):
 class PushoverNotifier(Notifier):
     API_URL = 'https://api.pushover.net/1/messages.json'
 
-    def notify(self, msg):
+    def notify(self, msg, url=None, url_title=None):
         import requests
 
         data = {
             'token': self.cfg.get('pushover', 'app_token'),
             'user': self.cfg.get('pushover', 'user_api_key'),
             'title': self._get_title(),
-            'message': msg
+            'message': msg,
         }
+
+        if url:
+            data['url'] = url
+        if url_title:
+            data['url_title'] = url_title
 
         resp = requests.post(self.API_URL, data=data)
         if not resp.ok:
@@ -191,15 +200,15 @@ def add_reply_link(cfg, msg):
     try:
         reply_url = cfg.get('general', 'reply_url')
     except ConfigParser.NoOptionError:
-        return msg
+        return {}
     if not reply_url.endswith('/'):
         reply_url += '/'
     target = msg.split(' ', 1)[0]
     reply_url += urllib.quote(target)
-    return " ".join([msg, reply_url])
+    return dict(url=reply_url, url_title='Reply')
 
 
-def format_message(cfg, msg):
+def get_notify_kwargs(cfg, msg):
     return add_reply_link(cfg, msg)
 
 
@@ -237,9 +246,9 @@ def process(cfg):
         if idle_time > threshold:
             with open(FNOTIFY_LOG) as f:
                 msg =  f.read().splitlines()[-1]
-                msg = format_message(cfg, msg)
+                kwargs = get_notify_kwargs(cfg, msg)
                 print "Sending Notification: ", msg
-                Notifier.get(cfg).notify(msg)
+                Notifier.get(cfg).notify(msg, **kwargs)
 
 
 def usage():
