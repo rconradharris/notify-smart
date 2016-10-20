@@ -197,15 +197,15 @@ def add_reply_link(cfg, msg):
     privmsg:
         user2 text
     """
+    URL_TEMPLATE = "http://{server}:5000/reply/{target}"
     try:
-        reply_url = cfg.get('general', 'reply_url')
+        reply_server = cfg.get('general', 'reply_server')
     except ConfigParser.NoOptionError:
         return {}
-    if not reply_url.endswith('/'):
-        reply_url += '/'
     target = msg.split(' ', 1)[0]
-    reply_url += 'reply/' + urllib.quote(target)
-    return dict(url=reply_url, url_title='Reply')
+    url = URL_TEMPLATE.format(server=reply_server,
+                              target=urllib.quote(target))
+    return dict(url=url, url_title='Reply')
 
 
 def get_notify_kwargs(cfg, msg):

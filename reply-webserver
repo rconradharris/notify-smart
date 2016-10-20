@@ -20,7 +20,7 @@ SUCCESS = """\
         </style>
     </head>
     <body>
-        <center>Reply Sent123!</center>
+        <center>Reply Sent!</center>
     </body>
 </html>
 """

@@ -12,6 +12,10 @@ standard OS X notifications.
 The remote notifications can be sent to email or to Pushover. Using an
 email-to-SMS gateway, you can send SMS messages using the email plugin.
 
+An advanced feature is the ability to reply directly from the device receiving
+the notification (e.g. your phone). This works by providing a link for you to
+click that directs to a web page where you can enter a reply.
+
 
 Requirements
 ============
@@ -43,6 +47,14 @@ with your current-idle time.
 If the current-idle time exceeds the threshold OR the last-modified age of
 that file exceeds the threshold, then an email/SMS notification is generated.
 
+The reply mechanism is composed of three parts:
+
+1) ``server-irc-notifier`` which appends a reply link to messages if enabled
+2) ``reply-webserver`` which provides a web form for the user to enter
+   their reply into
+3) The ``reply.pl`` irssi script which converts the webform reply into an actual
+   IRC message
+
 Setup
 =====
 
@@ -72,6 +84,24 @@ use ``examples`` directory for help.
 
 Finally, you need to copy ``server-irc-notifier`` script to the server (e.g.
 your IRC bouncer) and run it in a screen session.
+
+
+Reply Setup
+-----------
+
+Setting up the reply mechanism is a bit tricky but you only need to do it
+once.
+
+The first thing you need to do is run the ``reply-webserver`` process in
+another screen session on your IRC server. Make sure that both inbound and
+outbound HTTP traffic on port 5000 is allowed.
+
+Add the ``reply_server`` config to the configuration file and make sure it is
+set to the public IP address of your IRC server.
+
+Finally, copy ``reply.pl`` script into your ``.irssi/scripts`` directory and run::
+
+    /load reply.pl
 
 
 Tips
