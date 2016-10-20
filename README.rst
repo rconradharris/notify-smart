@@ -1,6 +1,6 @@
-==================
-smart-irc-notifier
-==================
+============
+notify-smart
+============
 
 
 Notify you of IRC messages both locally and, when you're away from the
