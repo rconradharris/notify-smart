@@ -204,7 +204,7 @@ def add_reply_link(cfg, msg):
     if not reply_url.endswith('/'):
         reply_url += '/'
     target = msg.split(' ', 1)[0]
-    reply_url += urllib.quote(target)
+    reply_url += 'reply/' + urllib.quote(target)
     return dict(url=reply_url, url_title='Reply')
 
 
