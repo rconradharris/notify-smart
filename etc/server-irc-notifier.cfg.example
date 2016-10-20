@@ -4,7 +4,7 @@ idle = 60
 poll_interval = 1.0
 notifier = email
 title = <YOUR-TITLE-OVERRIDE-HERE>
-reply_server = example.com
+reply_server = <YOUR-IRC-SERVER-PUBLIC-IP>
 
 [email]
 smtp_host = <YOUR-SMTP-HOST-HERE>
