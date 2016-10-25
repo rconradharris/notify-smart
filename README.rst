@@ -24,8 +24,7 @@ Requirements
 * ``terminal-notifier`` (get from Homebrew)
 * GNU ``screen`` or ``tmux`` on the server (since ``server-irc-notifier``
   needs to run persistently even when you logout)
-* Python's ``requests`` module
-* Python's ``flask`` module (if using the reply feature)
+* Python's ``requests``, ``flask``, and ``gunicorn`` modules
 
 
 Design
@@ -96,7 +95,7 @@ Reply Setup
 Setting up the reply mechanism is a bit tricky but you only need to do it
 once.
 
-The first thing you need to do is run the ``reply-webserver`` process in
+The first thing you need to do is run the ``run-reply-webserver`` process in
 another screen session on your IRC server. Make sure that both inbound and
 outbound HTTP traffic on port 5000 is allowed.
 
