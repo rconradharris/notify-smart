@@ -1,25 +1,21 @@
-# Place this in your irssi scripts directory ~/.irssi/scripts and load it using:
-#   /load reply.pl
 use strict;
 use File::Basename;
-use Irssi;
-
 use vars qw($SERVER $VERSION %IRSSI);
 
-$VERSION = '0.0.1';
+use Irssi;
 $SERVER = '<fill-this-in>';
+$VERSION = '0.0.2';
 %IRSSI = (
-    authors     => 'Rick Harris',
-    contact     => 'rconradharris@gmail.com',
-    name        => 'reply',
-    description => 'Reply to IRC messages programmatically',
-    url         => 'https://github.com/rconradharris/smart-irc-notifier',
-    license     => 'GNU General Public License',
-    changed     => '$Date: 2016-09-27 12:00:00 +0100 (Tue, 27 Sep 2016) $'
+	authors     => 'Rick Harris',
+	contact     => 'rconradharris@gmail.com',
+	name        => 'reply',
+	description => 'Reply to IRC messages programmatically',
+	url         => '<add this>',
+	license     => 'GNU General Public License',
+	changed     => '$Date: 2016-09-27 12:00:00 +0100 (Tue, 27 Sep 2016) $'
 );
 
-sub poller {
-    my $server = Irssi::server_find_tag($SERVER);
+sub reply_poller {
     foreach my $path (glob("~/.irssi/reply-data/*")) {
         # Determine if file is recent enough
         my $age = time - basename($path);
@@ -27,10 +23,30 @@ sub poller {
             # Read file and send IRC message to target
             open(my $file, '<', $path);
             (my $target, my $reply) = split /[:\s]+/, <$file>, 2;
-            $server->command('msg ' . $target . ' ' . $reply);
+            Irssi::server_find_tag($SERVER)->command('msg ' . $target . ' ' . $reply);
+            close($file);
         }
         unlink $path;
     }
 }
 
-Irssi::timeout_add(1000, "poller", "");
+sub append_file {
+	my ($filename, $text) = @_;
+    my $path = "$ENV{HOME}/.irssi/".$filename;
+    mkdir(dirname($path));
+    open(my $file, ">>".$path);
+    print($file $text . "\n");
+    close($file);
+}
+
+sub log_transcript {
+    my ($dest, $text, $stripped) = @_;
+    if (($dest->{level} & MSGLEVEL_PUBLIC) || ($dest->{level} & MSGLEVEL_MSGS)) {
+        my $filename = "transcripts/" . $dest->{target};
+        append_file($filename, $stripped);
+    }
+}
+
+
+Irssi::signal_add_last("print text", "log_transcript");
+Irssi::timeout_add(250, "reply_poller", "");

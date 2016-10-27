@@ -1,0 +1,17 @@
+{% extends '_layout.html' %}
+
+{% block title %}
+{{ target }} Transcript
+{% endblock title %}
+
+{% block body %}
+{% for line in lines %}
+    {{ line }}<br>
+{% endfor %}
+<form method="post">
+    <input type="text" name="reply">
+    <br>
+    <br>
+    <button type="submit">Reply</button>
+</form>
+{% endblock body %}
