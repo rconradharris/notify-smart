@@ -197,13 +197,18 @@ def add_reply_link(cfg, msg):
     privmsg:
         user2 text
     """
-    URL_TEMPLATE = "https://{server}:5000/reply/{target}"
+    URL_TEMPLATE = "https://{server}:5000/reply/{target}?secret={secret}"
     try:
-        reply_server = cfg.get('general', 'reply_server')
+        server = cfg.get('reply', 'server')
+    except ConfigParser.NoOptionError:
+        return {}
+    try:
+        secret = cfg.get('reply', 'secret')
     except ConfigParser.NoOptionError:
         return {}
     target = msg.split(' ', 1)[0]
-    url = URL_TEMPLATE.format(server=reply_server,
+    url = URL_TEMPLATE.format(server=server,
+                              secret=secret,
                               target=urllib.quote(target))
     return dict(url=url, url_title='Reply')
 
