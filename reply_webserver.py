@@ -4,6 +4,7 @@ Webserver to serve the reply form.
 """
 import ConfigParser
 import os
+import re
 import string
 import time
 
@@ -60,6 +61,14 @@ def channels():
         'channels.html', targets=_targets(), secret=secret)
 
 
+_urlfinderregex = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
+
+
+def linkify(text):
+    """From http://stackoverflow.com/questions/1727535/replace-urls-in-text-with-links-to-urls"""
+    return _urlfinderregex.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), text) if text else ''
+
+
 @app.route('/channel/<target>', methods=['GET', 'POST'])
 def channel(target):
     secret = flask.request.args.get('secret', '')
@@ -87,7 +96,7 @@ def channel(target):
         if not os.path.exists(path):
             return flask.abort(404)
         with open(path) as f:
-            lines = f.read().splitlines()
+            lines = map(linkify, f.read().splitlines())
             return flask.render_template(
                 'channel.html',
                 target=target,

@@ -13,7 +13,7 @@
 
 {% block body %}
 {% for line in lines %}
-    {{ line }}<br>
+    {{ line|safe }}<br>
 {% endfor %}
 <form method="post">
 	<div class="form-group">
