@@ -4,12 +4,14 @@ Webserver to serve the reply form.
 """
 import ConfigParser
 import os
+import string
 import time
 
 import flask
 
 app = flask.Flask(__name__)
 
+ALLOWED_CHARS = '-#_'
 DEFAULT_TRANSCRIPT_CONTEXT = 5
 MAX_TRANSCRIPT_CONTEXT = 25
 REPLY_WAIT = 0.5
@@ -37,11 +39,23 @@ def _validate_secret(secret):
     return secret == cfg_secret
 
 
+SANITIZE_TABLE = None
+
+def _sanitize(s):
+    global SANITIZE_TABLE
+    if not SANITIZE_TABLE:
+        whitelist = string.letters + string.digits + ALLOWED_CHARS
+        SANITIZE_TABLE = string.maketrans(whitelist, ' ' * len(whitelist))
+    return str(s).translate(None, SANITIZE_TABLE)
+
+
 @app.route('/reply/<target>', methods=['GET', 'POST'])
 def reply(target):
     secret = flask.request.args.get('secret', '')
     if not _validate_secret(secret):
         return flask.abort(404)
+    # Sanitize target to prevent injection attacks
+    target = _sanitize(target)
     n = int(flask.request.args.get('n', DEFAULT_TRANSCRIPT_CONTEXT))
     if flask.request.method == 'POST':
         # Write our reply to reply-data directory which is the communication
