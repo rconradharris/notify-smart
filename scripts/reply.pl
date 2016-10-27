@@ -1,10 +1,11 @@
 use strict;
 use File::Basename;
-use vars qw($SERVER $VERSION %IRSSI);
+use vars qw($SERVER $ROTATE $VERSION %IRSSI);
 
 use Irssi;
-$SERVER = '<fill-this-in>';
-$VERSION = '0.0.2';
+$SERVER = 'rackspace';
+$ROTATE = 25;
+$VERSION = '0.0.3';
 %IRSSI = (
 	authors     => 'Rick Harris',
 	contact     => 'rconradharris@gmail.com',
@@ -37,6 +38,8 @@ sub append_file {
     open(my $file, ">>".$path);
     print($file $text . "\n");
     close($file);
+    # Rotate file
+    system("tail -n$ROTATE $path > $path.tmp && mv $path.tmp $path");
 }
 
 sub log_transcript {
