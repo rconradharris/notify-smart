@@ -13,5 +13,10 @@
     <br>
     <br>
     <button type="submit">Reply</button>
+    {% if n == more_context %}
+        <a href="{{ url_for('reply', target=target, secret=secret, n=default_context) }}">Less Context</a>
+    {% else %}
+        <a href="{{ url_for('reply', target=target, secret=secret, n=more_context) }}">More Context</a>
+    {% endif %}
 </form>
 {% endblock body %}

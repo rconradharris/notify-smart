@@ -11,6 +11,7 @@ import flask
 app = flask.Flask(__name__)
 
 DEFAULT_TRANSCRIPT_CONTEXT = 5
+MAX_TRANSCRIPT_CONTEXT = 25
 REPLY_WAIT = 0.5
 REPLY_DIRECTORY = os.path.expanduser('~/.irssi/reply-data')
 TRANSCRIPTS_DIRECTORY = os.path.expanduser('~/.irssi/transcripts')
@@ -41,6 +42,7 @@ def reply(target):
     secret = flask.request.args.get('secret', '')
     if not _validate_secret(secret):
         return flask.abort(404)
+    n = int(flask.request.args.get('n', DEFAULT_TRANSCRIPT_CONTEXT))
     if flask.request.method == 'POST':
         # Write our reply to reply-data directory which is the communication
         # channel between the webserver and the reply.pl irssi plugin
@@ -55,16 +57,21 @@ def reply(target):
         time.sleep(REPLY_WAIT)
 
         return flask.redirect(
-            flask.url_for('reply', target=target, secret=secret))
+            flask.url_for('reply', target=target, secret=secret, n=n))
     else:
         path = os.path.join(TRANSCRIPTS_DIRECTORY, target)
         if not os.path.exists(path):
             return flask.abort(404)
         with open(path) as f:
-            n = int(flask.request.args.get('n', DEFAULT_TRANSCRIPT_CONTEXT))
             lines = f.read().splitlines()[-n:]
             return flask.render_template(
-                'reply.html', target=target, lines=lines)
+                'reply.html',
+                target=target,
+                lines=lines,
+                secret=secret,
+                n=n,
+                default_context=DEFAULT_TRANSCRIPT_CONTEXT,
+                more_context=MAX_TRANSCRIPT_CONTEXT)
 
 
 if __name__ == '__main__':
