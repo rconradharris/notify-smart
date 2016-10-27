@@ -12,8 +12,6 @@ import flask
 app = flask.Flask(__name__)
 
 ALLOWED_CHARS = '-#_'
-DEFAULT_TRANSCRIPT_CONTEXT = 5
-MAX_TRANSCRIPT_CONTEXT = 25
 REPLY_WAIT = 0.5
 REPLY_DIRECTORY = os.path.expanduser('~/.irssi/reply-data')
 TRANSCRIPTS_DIRECTORY = os.path.expanduser('~/.irssi/transcripts')
@@ -49,14 +47,17 @@ def _sanitize(s):
     return str(s).translate(None, SANITIZE_TABLE)
 
 
+def _targets():
+    return os.listdir(TRANSCRIPTS_DIRECTORY)
+
+
 @app.route('/channels')
 def channels():
     secret = flask.request.args.get('secret', '')
     if not _validate_secret(secret):
         return flask.abort(404)
-    targets = os.listdir(TRANSCRIPTS_DIRECTORY)
     return flask.render_template(
-        'channels.html', targets=targets, secret=secret)
+        'channels.html', targets=_targets(), secret=secret)
 
 
 @app.route('/channel/<target>', methods=['GET', 'POST'])
@@ -66,7 +67,6 @@ def channel(target):
         return flask.abort(404)
     # Sanitize target to prevent injection attacks
     target = _sanitize(target)
-    n = int(flask.request.args.get('n', DEFAULT_TRANSCRIPT_CONTEXT))
     if flask.request.method == 'POST':
         # Write our reply to reply-data directory which is the communication
         # channel between the webserver and the reply.pl irssi plugin
@@ -81,21 +81,19 @@ def channel(target):
         time.sleep(REPLY_WAIT)
 
         return flask.redirect(
-            flask.url_for('channel', target=target, secret=secret, n=n))
+            flask.url_for('channel', target=target, secret=secret))
     else:
         path = os.path.join(TRANSCRIPTS_DIRECTORY, target)
         if not os.path.exists(path):
             return flask.abort(404)
         with open(path) as f:
-            lines = f.read().splitlines()[-n:]
+            lines = f.read().splitlines()
             return flask.render_template(
                 'channel.html',
                 target=target,
                 lines=lines,
                 secret=secret,
-                n=n,
-                default_context=DEFAULT_TRANSCRIPT_CONTEXT,
-                more_context=MAX_TRANSCRIPT_CONTEXT)
+				targets=_targets())
 
 
 if __name__ == '__main__':
