@@ -9,7 +9,7 @@ import time
 
 import flask
 
-app = flask.Flask(__name__)
+app = flask.Flask(__name__, static_url_path='')
 
 ALLOWED_CHARS = '-#_'
 REPLY_WAIT = 0.5
