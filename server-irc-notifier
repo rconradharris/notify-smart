@@ -197,7 +197,7 @@ def add_reply_link(cfg, msg):
     privmsg:
         user2 text
     """
-    URL_TEMPLATE = "http://{server}:5000/reply/{target}"
+    URL_TEMPLATE = "https://{server}:5000/reply/{target}"
     try:
         reply_server = cfg.get('general', 'reply_server')
     except ConfigParser.NoOptionError:
