@@ -49,8 +49,18 @@ def _sanitize(s):
     return str(s).translate(None, SANITIZE_TABLE)
 
 
-@app.route('/reply/<target>', methods=['GET', 'POST'])
-def reply(target):
+@app.route('/channels')
+def channels():
+    secret = flask.request.args.get('secret', '')
+    if not _validate_secret(secret):
+        return flask.abort(404)
+    targets = os.listdir(TRANSCRIPTS_DIRECTORY)
+    return flask.render_template(
+        'channels.html', targets=targets, secret=secret)
+
+
+@app.route('/channel/<target>', methods=['GET', 'POST'])
+def channel(target):
     secret = flask.request.args.get('secret', '')
     if not _validate_secret(secret):
         return flask.abort(404)
@@ -71,7 +81,7 @@ def reply(target):
         time.sleep(REPLY_WAIT)
 
         return flask.redirect(
-            flask.url_for('reply', target=target, secret=secret, n=n))
+            flask.url_for('channel', target=target, secret=secret, n=n))
     else:
         path = os.path.join(TRANSCRIPTS_DIRECTORY, target)
         if not os.path.exists(path):
@@ -79,7 +89,7 @@ def reply(target):
         with open(path) as f:
             lines = f.read().splitlines()[-n:]
             return flask.render_template(
-                'reply.html',
+                'channel.html',
                 target=target,
                 lines=lines,
                 secret=secret,

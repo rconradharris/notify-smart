@@ -197,7 +197,7 @@ def add_reply_link(cfg, msg):
     privmsg:
         user2 text
     """
-    URL_TEMPLATE = "https://{server}:5000/reply/{target}?secret={secret}"
+    URL_TEMPLATE = "https://{server}:5000/channel/{target}?secret={secret}"
     try:
         server = cfg.get('reply', 'server')
     except ConfigParser.NoOptionError:
@@ -206,7 +206,7 @@ def add_reply_link(cfg, msg):
         secret = cfg.get('reply', 'secret')
     except ConfigParser.NoOptionError:
         return {}
-    target = msg.split(' ', 1)[0]
+    target = msg.split(' ')[1]
     url = URL_TEMPLATE.format(server=server,
                               secret=secret,
                               target=urllib.quote(target))

@@ -1,0 +1,29 @@
+{% extends '_layout.html' %}
+
+{% block title %}
+{{ target }}
+{% endblock title %}
+
+{% block head %}
+<meta http-equiv="refresh" content="5">
+{% endblock head %}
+
+
+{% block body %}
+<h1>{{ target }}</h1>
+{% for line in lines %}
+    {{ line }}<br>
+{% endfor %}
+<form method="post">
+    <input type="text" name="reply">
+    <br>
+    <br>
+    <button type="submit">Reply</button>
+    {% if n == more_context %}
+        <a href="{{ url_for('channel', target=target, secret=secret, n=default_context) }}">Less Context</a>
+    {% else %}
+        <a href="{{ url_for('channel', target=target, secret=secret, n=more_context) }}">More Context</a>
+    {% endif %}
+</form>
+    <a href="{{ url_for('channels',  secret=secret) }}">Channel List</a>
+{% endblock body %}
