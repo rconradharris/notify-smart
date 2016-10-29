@@ -49,7 +49,13 @@ def _sanitize(s):
 
 
 def _targets():
-    return os.listdir(TRANSCRIPTS_DIRECTORY)
+    targets = []
+    for network in  os.listdir(TRANSCRIPTS_DIRECTORY):
+        path = os.path.join(TRANSCRIPTS_DIRECTORY, network)
+        if os.path.isdir(path):
+            for target in os.listdir(path):
+                targets.append((network, target))
+    return targets
 
 
 @app.route('/channels')
@@ -77,8 +83,8 @@ def fixup_line(line):
     return linkify(escape_angle_brackets(line))
 
 
-@app.route('/channel/<target>', methods=['GET', 'POST'])
-def channel(target):
+@app.route('/channel/<network>/<target>', methods=['GET', 'POST'])
+def channel(network, target):
     secret = flask.request.args.get('secret', '')
     if not _validate_secret(secret):
         return flask.abort(404)
@@ -92,21 +98,22 @@ def channel(target):
         path = os.path.join(REPLY_DIRECTORY, str(time.time()))
         with open(path, 'w') as f:
             reply = flask.request.form['reply']
-            f.write(" ".join([target, reply]) + '\n')
+            f.write(" ".join([network, target, reply]) + '\n')
 
         # Give the reply.pl poller a chance to actually emit the new message
         time.sleep(REPLY_WAIT)
 
         return flask.redirect(
-            flask.url_for('channel', target=target, secret=secret))
+            flask.url_for('channel', network=network, target=target, secret=secret))
     else:
-        path = os.path.join(TRANSCRIPTS_DIRECTORY, target)
+        path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
         if not os.path.exists(path):
             return flask.abort(404)
         with open(path) as f:
             lines = map(fixup_line, f.read().splitlines())
             return flask.render_template(
                 'channel.html',
+                network=network,
                 target=target,
                 lines=lines,
                 secret=secret,

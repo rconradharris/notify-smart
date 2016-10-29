@@ -8,7 +8,7 @@
 {% endblock head %}
 
 {% block brand %}
-    <a class="navbar-brand" href="{{ url_for('channel', target=target, secret=secret) }}">
+    <a class="navbar-brand" href="{{ url_for('channel', network=network, target=target, secret=secret) }}">
     <span class="glyphicon glyphicon-refresh"></span>&nbsp;&nbsp;{{ target }}
     </a>
 {% endblock brand %}

@@ -1,11 +1,11 @@
 use strict;
 use File::Basename;
-use vars qw($SERVER $ROTATE $VERSION %IRSSI);
+use File::Path 'make_path';
+use vars qw($ROTATE $VERSION %IRSSI);
 
 use Irssi;
-$SERVER = 'rackspace';
 $ROTATE = 25;
-$VERSION = '0.0.3';
+$VERSION = '0.0.4';
 %IRSSI = (
 	authors     => 'Rick Harris',
 	contact     => 'rconradharris@gmail.com',
@@ -23,8 +23,8 @@ sub reply_poller {
         if ($age < 30) {
             # Read file and send IRC message to target
             open(my $file, '<', $path);
-            (my $target, my $reply) = split /[:\s]+/, <$file>, 2;
-            Irssi::server_find_tag($SERVER)->command('msg ' . $target . ' ' . $reply);
+            (my $network, my $target, my $reply) = split /[:\s]+/, <$file>, 3;
+            Irssi::server_find_tag($network)->command('msg ' . $target . ' ' . $reply);
             close($file);
         }
         unlink $path;
@@ -34,7 +34,7 @@ sub reply_poller {
 sub append_file {
 	my ($filename, $text) = @_;
     my $path = "$ENV{HOME}/.irssi/".$filename;
-    mkdir(dirname($path));
+    make_path(dirname($path));
     open(my $file, ">>".$path);
     print($file $text . "\n");
     close($file);
@@ -45,7 +45,8 @@ sub append_file {
 sub log_transcript {
     my ($dest, $text, $stripped) = @_;
     if (($dest->{level} & MSGLEVEL_PUBLIC) || ($dest->{level} & MSGLEVEL_MSGS)) {
-        my $filename = "transcripts/" . $dest->{target};
+        my $network = $dest->{server}->{tag};
+        my $filename = "transcripts/" . $network . "/" . $dest->{target};
         append_file($filename, $stripped);
     }
 }
