@@ -1,10 +1,10 @@
 use strict;
 use File::Basename;
 use File::Path 'make_path';
-use vars qw($ROTATE $VERSION %IRSSI);
+use vars qw($SCROLLBACK $VERSION %IRSSI);
 
 use Irssi;
-$ROTATE = 25;
+$SCROLLBACK = 25;
 $VERSION = '0.0.4';
 %IRSSI = (
 	authors     => 'Rick Harris',
@@ -39,7 +39,7 @@ sub append_file {
     print($file $text . "\n");
     close($file);
     # Rotate file
-    system("tail -n$ROTATE $path > $path.tmp && mv $path.tmp $path");
+    system("tail -n$SCROLLBACK $path > $path.tmp && mv $path.tmp $path");
 }
 
 sub log_transcript {
