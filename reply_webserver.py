@@ -64,9 +64,17 @@ def channels():
 _urlfinderregex = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 
 
-def linkify(text):
+def linkify(line):
     """From http://stackoverflow.com/questions/1727535/replace-urls-in-text-with-links-to-urls"""
-    return _urlfinderregex.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), text) if text else ''
+    return _urlfinderregex.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), line) if line else ''
+
+
+def escape_angle_brackets(line):
+    return line.replace('<', '&lt;').replace('>', '&gt;')
+
+
+def fixup_line(line):
+    return linkify(escape_angle_brackets(line))
 
 
 @app.route('/channel/<target>', methods=['GET', 'POST'])
@@ -96,7 +104,7 @@ def channel(target):
         if not os.path.exists(path):
             return flask.abort(404)
         with open(path) as f:
-            lines = map(linkify, f.read().splitlines())
+            lines = map(fixup_line, f.read().splitlines())
             return flask.render_template(
                 'channel.html',
                 target=target,
