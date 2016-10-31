@@ -42,15 +42,22 @@ sub append_file {
     system("tail -n$SCROLLBACK $path > $path.tmp && mv $path.tmp $path");
 }
 
-sub log_transcript {
+sub handle_msg {
     my ($dest, $text, $stripped) = @_;
+
+    # Log Transcript
     if (($dest->{level} & MSGLEVEL_PUBLIC) || ($dest->{level} & MSGLEVEL_MSGS)) {
         my $network = $dest->{server}->{tag};
-        my $filename = "transcripts/" . $network . "/" . $dest->{target};
-        append_file($filename, $stripped);
+        append_file("transcripts/" . $network . "/" . $dest->{target}, $stripped);
+    }
+
+    # Notify
+    if (($dest->{level} & MSGLEVEL_HILIGHT) || ($dest->{level} & MSGLEVEL_MSGS)) {
+        my $network = $dest->{server}->{tag};
+        append_file('fnotify', $network . ' ' . $dest->{target} . ' ' . $stripped);
     }
 }
 
 
-Irssi::signal_add_last("print text", "log_transcript");
+Irssi::signal_add_last("print text", "handle_msg");
 Irssi::timeout_add(250, "reply_poller", "");

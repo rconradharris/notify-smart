@@ -76,11 +76,9 @@ The recommended way of running ``client-irc-notifier`` is by using a
 Server-side
 -----------
 
-First you need to setup ``fnotify.pl``. You can do this by copying the script
-which is in the ``scripts`` directory into ``.irssi/scripts``. Afterwards load
-it by running::
-
-    /load fnotify.pl
+First you need to setup ``reply.pl``. You can do this by copying the script
+which is in the ``scripts`` directory into ``.irssi/scripts``. You can then
+create ``.irssi/scripts/autorun`` (if it doesn't exist) and add a symlink.
 
 Next you need to run create a config file in ``.irssi/server-irc-notifier.cfg``,
 use ``examples`` directory for help.
@@ -101,11 +99,6 @@ outbound HTTP traffic on port 5000 is allowed.
 
 Add the ``reply_server`` config to the configuration file and make sure it is
 set to the public IP address of your IRC server.
-
-Finally, copy ``reply.pl`` script into your ``.irssi/scripts`` directory, edit
-it to fill in the ``$SERVER`` variable, and run it::
-
-    /load reply.pl
 
 
 Tips
