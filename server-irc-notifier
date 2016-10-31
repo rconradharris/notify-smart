@@ -76,6 +76,55 @@ def get_idle_time():
     return last_updated if last_updated > idle_time else idle_time
 
 
+
+class Message(object):
+    URL_TEMPLATE = "https://{server}:5000/channel/{network}/{target}?secret={secret}"
+
+    def __init__(self, cfg, network, target, text):
+        self.cfg = cfg
+        self.network = network
+        self.target = target
+        self.text = text
+
+    def __repr__(self):
+        return "<Message network='{network}' target='{target}' text='{text}'>".format(
+            network=self.network, target=self.target, text=self.text)
+
+    @property
+    def title(self):
+        try:
+            return self.cfg.get('general', 'title')
+        except ConfigParser.NoOptionError:
+            return DEFAULT_TITLE
+
+    @property
+    def url(self):
+        try:
+            server = self.cfg.get('reply', 'server')
+        except ConfigParser.NoOptionError:
+            return None
+        try:
+            secret = self.cfg.get('reply', 'secret')
+        except ConfigParser.NoOptionError:
+            return None
+        return self.URL_TEMPLATE.format(server=server,
+                                        secret=secret,
+                                        network=urllib.quote(self.network),
+                                        target=urllib.quote(self.target))
+
+    @property
+    def url_title(self):
+        return 'Reply'
+
+    @classmethod
+    def from_raw_text(cls, cfg, raw_text):
+        parts = raw_text.split(' ')
+        network = parts[0]
+        target = parts[1]
+        text = ' '.join(parts[2:])
+        return cls(cfg, network, target, text)
+
+
 class NotifierError(Exception):
     pass
 
@@ -84,14 +133,8 @@ class Notifier(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
-    def notify(self, msg, url=None, url_title=None):
-        pass
-
-    def _get_title(self):
-        try:
-            return self.cfg.get('general', 'title')
-        except ConfigParser.NoOptionError:
-            return DEFAULT_TITLE
+    def notify(self, msg):
+        raise NotImplementedError
 
     @staticmethod
     def get(cfg):
@@ -127,7 +170,7 @@ class EmailNotifier(Notifier):
         msg['To'] = to_email
         server.sendmail(from_email, [to_email], msg.as_string())
 
-    def notify(self, msg, url=None, url_title=None):
+    def notify(self, msg):
         try:
             debuglevel = self.cfg.getint('email', 'debuglevel')
         except ConfigParser.NoOptionError:
@@ -141,16 +184,16 @@ class EmailNotifier(Notifier):
         except:
             raise NotifierError
 
-        parts = [msg]
-        if url:
-            parts.append(url)
+        body = msg.text
+        if msg.url:
+            body += ' ' + msg.url
 
         try:
             self._smtp_send(server,
                             self.cfg.get('email', 'from_email'),
                             self.cfg.get('email', 'to_email'),
-                            body=' '.join(parts),
-                            subject=self._get_title())
+                            body=body,
+                            subject=msg.title)
         except:
             raise NotifierError
         finally:
@@ -160,20 +203,20 @@ class EmailNotifier(Notifier):
 class PushoverNotifier(Notifier):
     API_URL = 'https://api.pushover.net/1/messages.json'
 
-    def notify(self, msg, url=None, url_title=None):
+    def notify(self, msg):
         import requests
 
         data = {
             'token': self.cfg.get('pushover', 'app_token'),
             'user': self.cfg.get('pushover', 'user_api_key'),
-            'title': self._get_title(),
-            'message': msg,
+            'title': msg.title,
+            'message': msg.text
         }
 
-        if url:
-            data['url'] = url
-        if url_title:
-            data['url_title'] = url_title
+        if msg.url:
+            data['url'] = msg.url
+        if msg.url_title:
+            data['url_title'] = msg.url_title
 
         resp = requests.post(self.API_URL, data=data)
         if not resp.ok:
@@ -187,37 +230,6 @@ NOTIFIERS = {
 
 
 LAST_MTIME = None
-
-
-def add_reply_link(cfg, msg):
-    """
-    fnotify.pl produces two different types of msg formats:
-    hilite:
-        #channel < user1> user2: text
-    privmsg:
-        user2 text
-    """
-    URL_TEMPLATE = "https://{server}:5000/channel/{network}/{target}?secret={secret}"
-    try:
-        server = cfg.get('reply', 'server')
-    except ConfigParser.NoOptionError:
-        return {}
-    try:
-        secret = cfg.get('reply', 'secret')
-    except ConfigParser.NoOptionError:
-        return {}
-    parts = msg.split(' ')
-    network = parts[0]
-    target = parts[1]
-    url = URL_TEMPLATE.format(server=server,
-                              secret=secret,
-                              network=urllib.quote(network),
-                              target=urllib.quote(target))
-    return dict(url=url, url_title='Reply')
-
-
-def get_notify_kwargs(cfg, msg):
-    return add_reply_link(cfg, msg)
 
 
 def process(cfg):
@@ -253,21 +265,13 @@ def process(cfg):
 
         if idle_time > threshold:
             with open(FNOTIFY_LOG) as f:
-                msg =  f.read().splitlines()[-1]
-                kwargs = get_notify_kwargs(cfg, msg)
+                raw_text =  f.read().splitlines()[-1]
+                msg = Message.from_raw_text(cfg, raw_text)
                 print "Sending Notification: ", msg
-                Notifier.get(cfg).notify(msg, **kwargs)
-
-
-def usage():
-        print "server-irc-notifier <start|test>"
-        sys.exit(1)
+                Notifier.get(cfg).notify(msg)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        usage()
-
     if not os.path.exists(CONFIG_FILE):
         print "error: required config file not found at '{}'".format(CONFIG_FILE)
         sys.exit(1)
@@ -275,17 +279,10 @@ if __name__ == '__main__':
     cfg = ConfigParser.ConfigParser()
     cfg.read(CONFIG_FILE)
 
-    if sys.argv[1] == 'start':
-        try:
-            poll_interval  = cfg.getfloat('general', 'poll_interval')
-        except ConfigParser.NoOptionError:
-            poll_interval = DEFAULT_POLL_INTERVAL
-        while True:
-            process(cfg)
-            time.sleep(poll_interval)
-    elif sys.argv[1] == 'test':
-        notifier = Notifier.get(cfg)
-        notifier.notify(random.choice(['apple', 'blackberry', 'cherry',
-                                       'dewberry', 'elderberry']))
-    else:
-        usage()
+    try:
+        poll_interval  = cfg.getfloat('general', 'poll_interval')
+    except ConfigParser.NoOptionError:
+        poll_interval = DEFAULT_POLL_INTERVAL
+    while True:
+        process(cfg)
+        time.sleep(poll_interval)
