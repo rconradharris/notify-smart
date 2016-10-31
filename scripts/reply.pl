@@ -5,7 +5,7 @@ use vars qw($SCROLLBACK $VERSION %IRSSI);
 
 use Irssi;
 $SCROLLBACK = 25;
-$VERSION = '0.0.4';
+$VERSION = '0.0.5';
 %IRSSI = (
 	authors     => 'Rick Harris',
 	contact     => 'rconradharris@gmail.com',
@@ -17,7 +17,7 @@ $VERSION = '0.0.4';
 );
 
 sub reply_poller {
-    foreach my $path (glob("~/.irssi/reply-data/*")) {
+    foreach my $path (glob(Irssi::get_irssi_dir() . "/reply-data/*")) {
         # Determine if file is recent enough
         my $age = time - basename($path);
         if ($age < 30) {
@@ -33,7 +33,7 @@ sub reply_poller {
 
 sub append_file {
 	my ($filename, $text) = @_;
-    my $path = "$ENV{HOME}/.irssi/".$filename;
+    my $path = Irssi::get_irssi_dir() . "/" . $filename;
     make_path(dirname($path));
     open(my $file, ">>".$path);
     print($file $text . "\n");
