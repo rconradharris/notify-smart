@@ -52,7 +52,7 @@ function start() {
     # fnotifier file
     (_ssh_irc_host "tail -n0 -f .irssi/fnotify " |
        while read message; do
-         echo $message | $NOTIFIER -group IRC -title IRC 2>&1 > /dev/null
+         echo $message | cut -d' ' -f2- | $NOTIFIER -group IRC -title IRC 2>&1 > /dev/null
        done)&
 
     # Update remote server with our current idle time
