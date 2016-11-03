@@ -25,10 +25,16 @@
 </tbody>
 </table>
 
-<form method="post">
+<form class="form-inline" method="post">
 	<div class="form-group">
-    <input class="form-control" type="text" name="reply" placeholder="Type reply here...">
+        <div class="col-xs-10">
+            <input class="form-control" type="text" name="reply" placeholder="Type reply here...">
+        </div>
+        <div class="col-xs-2">
+            <button type="submit" class="btn btn-success">
+                <span class="glyphicon glyphicon-send"></span>
+            </button>
+        </div>
 	</div>
-    <button type="submit" class="btn btn-success">Reply</button>
 </form>
 {% endblock body %}
