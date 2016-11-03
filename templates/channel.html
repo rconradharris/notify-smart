@@ -18,7 +18,7 @@
 <tbody>
 {% for author, text in lines %}
     <tr>
-        <td><span class="label label-default">{{ author }}</span></td>
+        <td><span class="label label-{{ author_labels[author] }}">{{ author }}</span></td>
         <td> {{ text|safe }}</td>
     </tr>
 {% endfor %}

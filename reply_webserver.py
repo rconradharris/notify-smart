@@ -75,9 +75,7 @@ def linkify(line):
     return RE_URL.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), line) if line else ''
 
 
-def fixup_line(line):
-    author, text = RE_MSG.match(line).groups()
-    return author.strip(), linkify(text)
+BOOTSTRAP_LABELS = map(lambda x: x.lower(), "Default Primary Success Info Warning Danger".split())
 
 
 @app.route('/channel/<network>/<target>', methods=['GET', 'POST'])
@@ -107,11 +105,27 @@ def channel(network, target):
         if not os.path.exists(path):
             return flask.abort(404)
         with open(path) as f:
-            lines = map(fixup_line, f.read().splitlines())
+            # Format lines
+            lines = []
+            authors = set()
+            for line in f.read().splitlines():
+                author, text = RE_MSG.match(line).groups()
+                author = author.strip()
+                text = linkify(text)
+                authors.add(author)
+                lines.append((author, text))
+
+            # Assign (hopefully) unique labels to each author
+            author_labels = {}
+            num_labels = len(BOOTSTRAP_LABELS)
+            for idx, author in enumerate(sorted(authors)):
+                author_labels[author] = BOOTSTRAP_LABELS[idx % num_labels]
+
             return flask.render_template(
                 'channel.html',
                 network=network,
                 target=target,
+                author_labels=author_labels,
                 lines=lines,
                 secret=secret,
 				targets=_targets())
