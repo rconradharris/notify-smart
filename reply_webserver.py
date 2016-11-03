@@ -20,6 +20,9 @@ TRANSCRIPTS_DIRECTORY = os.path.expanduser('~/.irssi/transcripts')
 CONFIG_PATH = os.path.expanduser('~/.irssi')
 CONFIG_FILE = os.path.join(CONFIG_PATH, 'server-irc-notifier.cfg')
 
+RE_URL = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
+RE_MSG = re.compile(r'\<(.*)\>\s(.*)')
+
 CFG = None
 
 def _validate_secret(secret):
@@ -67,20 +70,14 @@ def channels():
         'channels.html', targets=_targets(), secret=secret)
 
 
-_urlfinderregex = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
-
-
 def linkify(line):
     """From http://stackoverflow.com/questions/1727535/replace-urls-in-text-with-links-to-urls"""
-    return _urlfinderregex.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), line) if line else ''
-
-
-def escape_angle_brackets(line):
-    return line.replace('<', '&lt;').replace('>', '&gt;')
+    return RE_URL.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), line) if line else ''
 
 
 def fixup_line(line):
-    return linkify(escape_angle_brackets(line))
+    author, text = RE_MSG.match(line).groups()
+    return author.strip(), linkify(text)
 
 
 @app.route('/channel/<network>/<target>', methods=['GET', 'POST'])

@@ -14,9 +14,17 @@
 {% endblock brand %}
 
 {% block body %}
-{% for line in lines %}
-    {{ line|safe }}<br>
+<table class="table table-striped table-condensed">
+<tbody>
+{% for author, text in lines %}
+    <tr>
+        <td><span class="label label-default">{{ author }}</span></td>
+        <td> {{ text|safe }}</td>
+    </tr>
 {% endfor %}
+</tbody>
+</table>
+
 <form method="post">
 	<div class="form-group">
     <input class="form-control" type="text" name="reply" placeholder="Type reply here...">
