@@ -79,6 +79,18 @@ def linkify(line):
 BOOTSTRAP_LABELS = map(lambda x: x.lower(), "Default Primary Success Info Warning Danger".split())
 
 
+@app.route('/channel/<network>/<target>/close', methods=['POST'])
+def close_channel(network, target):
+    secret = flask.request.args.get('secret', '')
+    if not _validate_secret(secret):
+        return flask.abort(404)
+    path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
+    if not os.path.exists(path):
+        return flask.abort(404)
+    os.unlink(path)
+    return flask.redirect(flask.url_for('channels', targets=_targets(), secret=secret))
+
+
 @app.route('/channel/<network>/<target>', methods=['GET', 'POST'])
 def channel(network, target):
     secret = flask.request.args.get('secret', '')

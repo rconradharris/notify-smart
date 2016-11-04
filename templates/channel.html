@@ -40,7 +40,7 @@
 <form class="form-inline" method="post">
 	<div class="form-group">
         <div class="col-xs-10">
-            <input class="form-control" type="text" name="reply" placeholder="Type reply here...">
+            <input id="reply" class="form-control" type="text" name="reply" placeholder="Type reply here...">
         </div>
         <div class="col-xs-2">
             <button type="submit" class="btn btn-success">
@@ -48,5 +48,11 @@
             </button>
         </div>
 	</div>
+</form>
+
+<form id="close" class="form-inline" method="post" action="{{ url_for('close_channel', network=network, target=target, secret=secret) }}" onsubmit="return confirm('Are you sure?')">
+    <button type="submit" class="btn btn-danger">
+        Close
+    </button>
 </form>
 {% endblock body %}

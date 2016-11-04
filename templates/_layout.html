@@ -30,7 +30,8 @@
         <meta name="theme-color" content="#ffffff">
 
 		<style>
-			body { margin-top: 55px; margin-bottom: 50px; }
+            body { margin-top: 55px; margin-bottom: 50px; }
+            #close { margin-top: 500px; text-align: center; }
 		</style>
         {% block head %} {% endblock head %}
     </head>
@@ -80,7 +81,9 @@
 	<script type="application/javascript">
 $(document).ready(
 	function() {
-		window.scrollTo(0,document.body.scrollHeight)
+        // Autoscroll down to reply button, and then go a little further to
+        // account for iPhone's bottom toolbar
+        window.scrollTo(0, $("#reply").offset().top - $(window).height() + 50);
 	}
 );
 	</script>
