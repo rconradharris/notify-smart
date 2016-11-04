@@ -22,6 +22,7 @@ CONFIG_FILE = os.path.join(CONFIG_PATH, 'server-irc-notifier.cfg')
 
 RE_URL = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 RE_MSG = re.compile(r'\<(.*)\>\s(.*)')
+RE_ACTION = re.compile(r'\s*\*\s*(\w+)\s*(.*)')
 
 CFG = None
 
@@ -109,11 +110,19 @@ def channel(network, target):
             lines = []
             authors = set()
             for line in f.read().splitlines():
-                author, text = RE_MSG.match(line).groups()
+                line = line.strip()
+                if line.startswith('<'):
+                    author, text = RE_MSG.match(line).groups()
+                    msg_type = 'msg'
+                elif line.startswith('*'):
+                    author, text = RE_ACTION.match(line).groups()
+                    msg_type = 'action'
+                else:
+                    raise Exception("Unknown line format '{}'".format(line))
                 author = author.strip()
                 text = linkify(text)
                 authors.add(author)
-                lines.append((author, text))
+                lines.append((author, msg_type, text))
 
             # Assign (hopefully) unique labels to each author
             author_labels = {}
