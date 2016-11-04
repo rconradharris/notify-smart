@@ -117,6 +117,10 @@ def channel(network, target):
                 elif line.startswith('*'):
                     author, text = RE_ACTION.match(line).groups()
                     msg_type = 'action'
+                elif line.startswith('!'):
+                    line = line[1:].strip()
+                    author, text = RE_MSG.match(line).groups()
+                    msg_type = 'hilight'
                 else:
                     raise Exception("Unknown line format '{}'".format(line))
                 author = author.strip()

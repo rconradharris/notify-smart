@@ -48,7 +48,9 @@ sub handle_msg {
     # Log Transcript
     if (($dest->{level} & MSGLEVEL_PUBLIC) || ($dest->{level} & MSGLEVEL_MSGS)) {
         my $network = $dest->{server}->{tag};
-        append_file("transcripts/" . $network . "/" . $dest->{target}, $stripped);
+        my $hilight = $dest->{level} & MSGLEVEL_HILIGHT ? '! ' : '';
+        append_file("transcripts/" . $network . "/" . $dest->{target},
+                    $hilight . $stripped);
     }
 
     # Notify
