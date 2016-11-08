@@ -2,6 +2,7 @@
 """
 Webserver to serve the reply form.
 """
+import codecs
 import ConfigParser
 import os
 import re
@@ -117,7 +118,7 @@ def channel(network, target):
         path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
         if not os.path.exists(path):
             return flask.abort(404)
-        with open(path) as f:
+        with codecs.open(path, encoding='utf-8') as f:
             # Format lines
             lines = []
             authors = set()
