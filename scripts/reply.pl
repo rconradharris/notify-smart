@@ -55,9 +55,9 @@ sub handle_msg {
 
     # Notify
     if (($dest->{level} & MSGLEVEL_HILIGHT) || ($dest->{level} & MSGLEVEL_MSGS)) {
-        my ($source) = $stripped =~ /\<\s*(\w+)\s*\>/;
+        my ($author) = $stripped =~ /\<\s*[@]*(\w+)\s*\>/;
         # Do not send notifications for messages that your wrote
-        if ($source != $dest->{target}) {
+        if ($author ne $dest->{target}) {
             my $network = $dest->{server}->{tag};
             append_file('fnotify', $network . ' ' . $dest->{target} . ' ' . $stripped);
         }
