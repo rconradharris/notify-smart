@@ -105,9 +105,9 @@ def channel(network, target):
         if not os.path.exists(REPLY_DIRECTORY):
             os.makedirs(REPLY_DIRECTORY)
         path = os.path.join(REPLY_DIRECTORY, str(time.time()))
-        with open(path, 'w') as f:
+        with codecs.open(path, 'w', encoding='utf-8') as f:
             reply = flask.request.form['reply']
-            f.write(" ".join([network, target, reply]) + '\n')
+            f.write(u'{network} {target} {reply}\n'.format(network=network, target=target, reply=reply))
 
         # Give the reply.pl poller a chance to actually emit the new message
         time.sleep(REPLY_WAIT)
