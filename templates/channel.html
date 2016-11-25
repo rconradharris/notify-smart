@@ -18,17 +18,17 @@
 {% include '_content.html' %}
 </div>
 
-<form class="form-inline" method="post">
-	<div class="form-group">
-        <div class="col-xs-10">
-            <input id="reply" class="form-control" type="text" name="reply" placeholder="Type reply here...">
+<form method="post">
+    <div class="col-md-11 col-sm-11 col-xs-9">
+        <input id="reply" class="form-control" type="text" name="reply"
+            placeholder="Type reply here...">
         </div>
-        <div class="col-xs-2">
-            <button type="submit" class="btn btn-success">
-                <span class="glyphicon glyphicon-send"></span>
-            </button>
-        </div>
-	</div>
+    <div class="right-col col-md-1 col-sm-1 col-xs-1">
+        <button type="submit" class="btn btn-success">
+            <span class="glyphicon glyphicon-send"></span>
+        </button>
+    </div>
+
 </form>
 
 <form id="close" class="form-inline" method="post" action="{{ url_for('close_channel', network=network, target=target, secret=secret) }}" onsubmit="return confirm('Are you sure?')">

@@ -1,4 +1,4 @@
-<table class="table table-striped table-condensed">
+<table class="table table-striped table-condensed content-table">
 <tbody>
 {% for author, msg_type, text in lines %}
     <tr
@@ -6,7 +6,11 @@
             class="success"
         {% endif %}
     >
-        <td class="author-col"><span class="label label-{{ author_labels[author] }}">{{ author }}</span></td>
+        <td class="col-md-1 col-sm-1 col-xs-1 right-col">
+            <span class="label label-{{ author_labels[author] }}">
+            {{ author }}
+            </span>
+        </td>
         <td>
             {% if msg_type == 'action' %}
                 <em>
