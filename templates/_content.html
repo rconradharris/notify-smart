@@ -1,0 +1,22 @@
+<table class="table table-striped table-condensed">
+<tbody>
+{% for author, msg_type, text in lines %}
+    <tr
+        {% if msg_type == 'hilight' %}
+            class="success"
+        {% endif %}
+    >
+        <td class="author-col"><span class="label label-{{ author_labels[author] }}">{{ author }}</span></td>
+        <td>
+            {% if msg_type == 'action' %}
+                <em>
+            {% endif %}
+            {{ text|safe }}
+            {% if msg_type == 'action' %}
+                </em>
+            {% endif %}
+        </td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>

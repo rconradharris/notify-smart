@@ -14,28 +14,9 @@
 {% endblock brand %}
 
 {% block body %}
-<table class="table table-striped table-condensed">
-<tbody>
-{% for author, msg_type, text in lines %}
-    <tr
-        {% if msg_type == 'hilight' %}
-            class="success"
-        {% endif %}
-    >
-        <td class="author-col"><span class="label label-{{ author_labels[author] }}">{{ author }}</span></td>
-        <td>
-            {% if msg_type == 'action' %}
-                <em>
-            {% endif %}
-            {{ text|safe }}
-            {% if msg_type == 'action' %}
-                </em>
-            {% endif %}
-        </td>
-    </tr>
-{% endfor %}
-</tbody>
-</table>
+<div id="channel-content">
+{% include '_content.html' %}
+</div>
 
 <form class="form-inline" method="post">
 	<div class="form-group">
@@ -56,3 +37,23 @@
     </button>
 </form>
 {% endblock body %}
+
+
+{% block javascript %}
+<script type="application/javascript">
+
+$(document).ready(
+	function() {
+        // Autoscroll down to reply button, and then go a little further to
+        // account for iPhone's bottom toolbar
+        window.scrollTo(0, $("#reply").offset().top - $(window).height() + 50);
+        setInterval(function() {
+            $.ajax({
+                url: "{{ url_for('channel_ajax', network=network, target=target, secret=secret, _external=True) }}",
+                cache: false
+            }).done(function(html) { $("#channel-content").html(html); });
+        }, 5000);
+	}
+);
+</script>
+{% endblock javascript %}

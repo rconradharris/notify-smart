@@ -79,14 +79,5 @@
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-	<script type="application/javascript">
-$(document).ready(
-	function() {
-        // Autoscroll down to reply button, and then go a little further to
-        // account for iPhone's bottom toolbar
-        window.scrollTo(0, $("#reply").offset().top - $(window).height() + 50);
-	}
-);
-	</script>
-
+    {% block javascript %} {% endblock javascript %}
 </html>

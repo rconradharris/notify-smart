@@ -27,6 +27,11 @@ RE_ACTION = re.compile(r'\s*\*\s*(\w+)\s*(.*)')
 
 CFG = None
 
+
+class ChannelNotFound(Exception):
+    pass
+
+
 def _validate_secret(secret):
     global CFG
     if not CFG:
@@ -92,6 +97,69 @@ def close_channel(network, target):
     return flask.redirect(flask.url_for('channels', targets=_targets(), secret=secret))
 
 
+def write_reply(network, target, reply):
+    # Write our reply to reply-data directory which is the communication
+    # channel between the webserver and the reply.pl irssi plugin
+    if not os.path.exists(REPLY_DIRECTORY):
+        os.makedirs(REPLY_DIRECTORY)
+    path = os.path.join(REPLY_DIRECTORY, str(time.time()))
+    with codecs.open(path, 'w', encoding='utf-8') as f:
+        f.write(u'{network} {target} {reply}\n'.format(network=network, target=target, reply=reply))
+
+
+def format_channel_content(network, target):
+    path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
+    if not os.path.exists(path):
+        raise ChannelNotFound
+    with codecs.open(path, encoding='utf-8') as f:
+        # Format lines
+        lines = []
+        authors = set()
+        for line in f.read().splitlines():
+            line = line.strip()
+            if line.startswith('<'):
+                author, text = RE_MSG.match(line).groups()
+                msg_type = 'msg'
+            elif line.startswith('*'):
+                author, text = RE_ACTION.match(line).groups()
+                msg_type = 'action'
+            elif line.startswith('!'):
+                line = line[1:].strip()
+                author, text = RE_MSG.match(line).groups()
+                msg_type = 'hilight'
+            else:
+                raise Exception("Unknown line format '{}'".format(line))
+            author = author.strip()
+            text = linkify(text)
+            authors.add(author)
+            lines.append((author, msg_type, text))
+
+    # Assign (hopefully) unique labels to each author
+    author_labels = {}
+    num_labels = len(BOOTSTRAP_LABELS)
+    for idx, author in enumerate(sorted(authors)):
+        author_labels[author] = BOOTSTRAP_LABELS[idx % num_labels]
+
+    return lines, author_labels
+
+
+@app.route('/ajax/channel/<network>/<target>')
+def channel_ajax(network, target):
+    secret = flask.request.args.get('secret', '')
+    if not _validate_secret(secret):
+        return flask.abort(404)
+    # Sanitize target to prevent injection attacks
+    target = _sanitize(target)
+    try:
+        lines, author_labels = format_channel_content(network, target)
+    except ChannelNotFound:
+        return flask.abort(404)
+    return flask.render_template(
+        '_content.html',
+        author_labels=author_labels,
+        lines=lines)
+
+
 @app.route('/channel/<network>/<target>', methods=['GET', 'POST'])
 def channel(network, target):
     secret = flask.request.args.get('secret', '')
@@ -100,14 +168,7 @@ def channel(network, target):
     # Sanitize target to prevent injection attacks
     target = _sanitize(target)
     if flask.request.method == 'POST':
-        # Write our reply to reply-data directory which is the communication
-        # channel between the webserver and the reply.pl irssi plugin
-        if not os.path.exists(REPLY_DIRECTORY):
-            os.makedirs(REPLY_DIRECTORY)
-        path = os.path.join(REPLY_DIRECTORY, str(time.time()))
-        with codecs.open(path, 'w', encoding='utf-8') as f:
-            reply = flask.request.form['reply']
-            f.write(u'{network} {target} {reply}\n'.format(network=network, target=target, reply=reply))
+        write_reply(network, target, flask.request.form['reply'])
 
         # Give the reply.pl poller a chance to actually emit the new message
         time.sleep(REPLY_WAIT)
@@ -115,46 +176,18 @@ def channel(network, target):
         return flask.redirect(
             flask.url_for('channel', network=network, target=target, secret=secret))
     else:
-        path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
-        if not os.path.exists(path):
+        try:
+            lines, author_labels = format_channel_content(network, target)
+        except ChannelNotFound:
             return flask.abort(404)
-        with codecs.open(path, encoding='utf-8') as f:
-            # Format lines
-            lines = []
-            authors = set()
-            for line in f.read().splitlines():
-                line = line.strip()
-                if line.startswith('<'):
-                    author, text = RE_MSG.match(line).groups()
-                    msg_type = 'msg'
-                elif line.startswith('*'):
-                    author, text = RE_ACTION.match(line).groups()
-                    msg_type = 'action'
-                elif line.startswith('!'):
-                    line = line[1:].strip()
-                    author, text = RE_MSG.match(line).groups()
-                    msg_type = 'hilight'
-                else:
-                    raise Exception("Unknown line format '{}'".format(line))
-                author = author.strip()
-                text = linkify(text)
-                authors.add(author)
-                lines.append((author, msg_type, text))
-
-            # Assign (hopefully) unique labels to each author
-            author_labels = {}
-            num_labels = len(BOOTSTRAP_LABELS)
-            for idx, author in enumerate(sorted(authors)):
-                author_labels[author] = BOOTSTRAP_LABELS[idx % num_labels]
-
-            return flask.render_template(
-                'channel.html',
-                network=network,
-                target=target,
-                author_labels=author_labels,
-                lines=lines,
-                secret=secret,
-				targets=_targets())
+        return flask.render_template(
+            'channel.html',
+            network=network,
+            target=target,
+            author_labels=author_labels,
+            lines=lines,
+            secret=secret,
+            targets=_targets())
 
 
 if __name__ == '__main__':
