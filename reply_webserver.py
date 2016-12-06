@@ -129,9 +129,9 @@ def format_channel_content(network, target):
                 msg_type = 'hilight'
             else:
                 raise Exception("Unknown line format '{}'".format(line))
-            author = author.strip()
+            authors.add(author.strip())
+            text = text.replace('<', '&lt;').replace('>', '&gt;')
             text = linkify(text)
-            authors.add(author)
             lines.append((author, msg_type, text))
 
     # Assign (hopefully) unique labels to each author
