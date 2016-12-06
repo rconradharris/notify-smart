@@ -4,7 +4,7 @@ use File::Path 'make_path';
 use vars qw($SCROLLBACK $VERSION %IRSSI);
 
 use Irssi;
-$SCROLLBACK = 25;
+$SCROLLBACK = 100;
 $VERSION = '0.0.5';
 %IRSSI = (
 	authors     => 'Rick Harris',
