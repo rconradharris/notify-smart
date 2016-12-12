@@ -21,7 +21,8 @@ TRANSCRIPTS_DIRECTORY = os.path.expanduser('~/.irssi/transcripts')
 CONFIG_PATH = os.path.expanduser('~/.irssi')
 CONFIG_FILE = os.path.join(CONFIG_PATH, 'server-irc-notifier.cfg')
 
-RE_URL = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
+RE_URL = re.compile(r'(^|\s+)http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
+RE_IMAGE_URL = re.compile(r'(^|\s+)http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}\.(jpg|jpeg|png|gif|,gifv)')
 RE_MSG = re.compile(r'\<(.*)\>\s(.*)')
 RE_ACTION = re.compile(r'\s*\*\s*(\w+)\s*(.*)')
 
@@ -77,11 +78,11 @@ def channels():
         'channels.html', targets=_targets(), secret=secret)
 
 
-def linkify(line):
+def perform_text_transforms(text):
     """From http://stackoverflow.com/questions/1727535/replace-urls-in-text-with-links-to-urls"""
-    if line:
-        line =  RE_URL.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), line)
-    return line
+    text =  RE_IMAGE_URL.sub(lambda m: '<img src="{url}">'.format(url=m.group(0)), text)
+    text =  RE_URL.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), text)
+    return text
 
 
 BOOTSTRAP_LABELS = map(lambda x: x.lower(), "Default Primary Success Info Warning Danger".split())
@@ -134,7 +135,7 @@ def format_channel_content(network, target):
             author = author.strip()
             authors.add(author)
             text = text.replace('<', '&lt;').replace('>', '&gt;')
-            text = linkify(text)
+            text = perform_text_transforms(text)
             lines.append((author, msg_type, text))
 
     # Assign (hopefully) unique labels to each author
