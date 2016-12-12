@@ -3,13 +3,15 @@
 Webserver to serve the reply form.
 """
 import codecs
-import ConfigParser
 import os
 import re
 import string
 import time
 
 import flask
+
+import config
+
 
 app = flask.Flask(__name__, static_url_path='')
 
@@ -26,27 +28,17 @@ RE_IMAGE_URL = re.compile(r'(^|\s+)http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}\.(jpg|jp
 RE_MSG = re.compile(r'\<(.*)\>\s(.*)')
 RE_ACTION = re.compile(r'\s*\*\s*(\w+)\s*(.*)')
 
-CFG = None
-
 
 class ChannelNotFound(Exception):
     pass
 
 
-def _validate_secret(secret):
-    global CFG
-    if not CFG:
-        if not os.path.exists(CONFIG_FILE):
-            print "error: required config file not found at '{}'".format(CONFIG_FILE)
-            return False
-        CFG = ConfigParser.ConfigParser()
-        CFG.read(CONFIG_FILE)
-    try:
-        cfg_secret = CFG.get('reply', 'secret')
-    except ConfigParser.NoOptionError:
-        print "Must supply secret in config file at '{}'".format(CONFIG_FILE)
+def _validate_secret(value):
+    secret = config.get('reply', 'secret')
+    if not secret:
+        print "error: Must supply 'secret' in config file"
         return False
-    return secret == cfg_secret
+    return value == secret
 
 
 SANITIZE_TABLE = None
