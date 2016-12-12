@@ -1,5 +1,5 @@
 # Place this in .irssi/server-irc-notifier.cfg
-[general]
+[notifier]
 idle = 60
 poll_interval = 1.0
 notifier = email

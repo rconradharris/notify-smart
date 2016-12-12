@@ -14,10 +14,10 @@ class ConfigFileNotFound(ConfigError):
 
 
 OPTIONS = {
-    'general': [
+    'notifier': [
         'idle',
         'poll_interval',
-        'notifier',
+        'plugin',
         'title',
     ],
     'reply': [

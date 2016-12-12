@@ -91,7 +91,7 @@ class Message(object):
 
     @property
     def title(self):
-        return config.get('general', 'title', default=DEFAULT_TITLE)
+        return config.get('notifier', 'title', default=DEFAULT_TITLE)
 
     @property
     def url(self):
@@ -125,7 +125,7 @@ class Notifier(object):
 
     @staticmethod
     def get():
-        name = config.get('general', 'notifier')
+        name = config.get('notifier', 'plugin')
         cls = NOTIFIERS[name]
         return cls()
 
@@ -225,7 +225,7 @@ def process():
 
     idle_time = get_idle_time()
 
-    threshold  = float(config.get('general', 'idle',
+    threshold  = float(config.get('notifier', 'idle',
                                   default=DEFAULT_IDLE_THRESHOLD))
 
     print "IDLE TIME = {:<10.1f} "\
@@ -254,7 +254,7 @@ def process():
 
 
 if __name__ == '__main__':
-    poll_interval  = float(config.get('general', 'poll_interval',
+    poll_interval  = float(config.get('notifier', 'poll_interval',
                                       default=DEFAULT_POLL_INTERVAL))
     while True:
         process()
