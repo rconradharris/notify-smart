@@ -129,7 +129,8 @@ def format_channel_content(network, target):
                 msg_type = 'hilight'
             else:
                 raise Exception("Unknown line format '{}'".format(line))
-            authors.add(author.strip())
+            author = author.strip()
+            authors.add(author)
             text = text.replace('<', '&lt;').replace('>', '&gt;')
             text = linkify(text)
             lines.append((author, msg_type, text))
