@@ -35,6 +35,12 @@ OPTIONS = {
     'pushover': [
         'user_api_key',
         'app_token',
+    ],
+    'web': [
+        'detect_links',
+        'disable_autocapitalize',
+        'disable_autocorrect',
+        'inline_images',
     ]
 }
 
@@ -60,11 +66,18 @@ def _read_config():
 _CFG_DICT = None
 
 
-def get(section, option, default=None):
+def get(section, option, default=None, type=str):
     global _CFG_DICT
 
     if _CFG_DICT is None:
         _CFG_DICT = _read_config()
 
     key = ":".join([section, option])
-    return _CFG_DICT.get(key, default)
+    try:
+        value = _CFG_DICT[key]
+    except KeyError:
+        return default
+    else:
+        if type is bool:
+            return value.lower() in ('true', 'yes', 'on', '1')
+        return type(value)

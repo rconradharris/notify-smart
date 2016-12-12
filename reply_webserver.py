@@ -72,8 +72,10 @@ def channels():
 
 def perform_text_transforms(text):
     """From http://stackoverflow.com/questions/1727535/replace-urls-in-text-with-links-to-urls"""
-    text =  RE_IMAGE_URL.sub(lambda m: '<img src="{url}">'.format(url=m.group(0)), text)
-    text =  RE_URL.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), text)
+    if config.get('web', 'inline_images', default=True, type=bool):
+        text =  RE_IMAGE_URL.sub(lambda m: '<img src="{url}">'.format(url=m.group(0)), text)
+    if config.get('web', 'detect_links', default=True, type=bool):
+        text =  RE_URL.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), text)
     return text
 
 
@@ -161,6 +163,7 @@ def channel(network, target):
     secret = flask.request.args.get('secret', '')
     if not _validate_secret(secret):
         return flask.abort(404)
+
     # Sanitize target to prevent injection attacks
     target = _sanitize(target)
     if flask.request.method == 'POST':
@@ -183,7 +186,10 @@ def channel(network, target):
             author_labels=author_labels,
             lines=lines,
             secret=secret,
-            targets=_targets())
+            targets=_targets(),
+            disable_autocorrect=config.get('web', 'disable_autocorrect'),
+            disable_autocapitalize=config.get('web', 'disable_autocapitalize')
+        )
 
 
 if __name__ == '__main__':

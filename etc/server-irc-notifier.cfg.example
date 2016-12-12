@@ -21,3 +21,9 @@ debuglevel = 0
 [pushover]
 user_api_key = <YOUR-PUSHOVER-USER-API-KEY-HERE>
 app_token = <YOUR-PUSHOVER-APP-TOKEN-HERE>
+
+[web]
+detect_links = true
+disable_autocapitalize = true
+disable_autocorrect = false
+inline_images = true
