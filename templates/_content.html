@@ -7,14 +7,14 @@
             class="success"
         {% endif %}
     >
-        <td class="col-md-1 col-sm-1 col-xs-1 right-col">
+        <td class="col-md-1 col-sm-2 col-xs-3 author-col">
             {% if prev_author != author %}
                 <span class="label label-{{ author_labels[author] }}">
                 {{ author }}
                 </span>
             {% endif %}
         </td>
-        <td>
+        <td class="col-md-11 col-sm-10 col-xs-9 content-col">
             {% if msg_type == 'action' %}
                 <em>
             {% endif %}

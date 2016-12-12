@@ -79,7 +79,9 @@ def channels():
 
 def linkify(line):
     """From http://stackoverflow.com/questions/1727535/replace-urls-in-text-with-links-to-urls"""
-    return RE_URL.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), line) if line else ''
+    if line:
+        line =  RE_URL.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), line)
+    return line
 
 
 BOOTSTRAP_LABELS = map(lambda x: x.lower(), "Default Primary Success Info Warning Danger".split())
