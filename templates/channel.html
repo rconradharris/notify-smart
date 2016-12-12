@@ -54,7 +54,7 @@ $(document).ready(
                 url: "{{ url_for('channel_ajax', network=network, target=target, secret=secret, _external=True) }}",
                 cache: false
             }).done(function(html) { $("#channel-content").html(html); });
-        }, 5000);
+        }, {{ poll_interval_ms }});
 	}
 );
 </script>

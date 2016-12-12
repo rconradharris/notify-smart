@@ -28,3 +28,4 @@ links_in_new_window = true
 disable_autocapitalize = true
 disable_autocorrect = false
 inline_images = true
+poll_interval = 5.0

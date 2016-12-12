@@ -28,6 +28,8 @@ RE_IMAGE_URL = re.compile(r'(^|\s+)http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}\.(jpg|jp
 RE_MSG = re.compile(r'\<(.*)\>\s(.*)')
 RE_ACTION = re.compile(r'\s*\*\s*(\w+)\s*(.*)')
 
+DEFAULT_POLL_INTERVAL = 5.0
+
 
 class ChannelNotFound(Exception):
     pass
@@ -186,6 +188,9 @@ def channel(network, target):
             lines, author_labels = format_channel_content(network, target)
         except ChannelNotFound:
             return flask.abort(404)
+        poll_interval_ms = 1000 * config.get('web', 'poll_interval',
+                                             default=DEFAULT_POLL_INTERVAL,
+                                             type=float)
         return flask.render_template(
             'channel.html',
             network=network,
@@ -195,8 +200,8 @@ def channel(network, target):
             secret=secret,
             targets=_targets(),
             disable_autocorrect=config.get('web', 'disable_autocorrect'),
-            disable_autocapitalize=config.get('web', 'disable_autocapitalize')
-        )
+            disable_autocapitalize=config.get('web', 'disable_autocapitalize'),
+            poll_interval_ms=poll_interval_ms)
 
 
 if __name__ == '__main__':
