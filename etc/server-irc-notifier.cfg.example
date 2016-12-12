@@ -24,6 +24,7 @@ app_token = <YOUR-PUSHOVER-APP-TOKEN-HERE>
 
 [web]
 detect_links = true
+links_in_new_window = true
 disable_autocapitalize = true
 disable_autocorrect = false
 inline_images = true

@@ -70,12 +70,19 @@ def channels():
         'channels.html', targets=_targets(), secret=secret)
 
 
+def linkify(url):
+    if config.get('web', 'links_in_new_window', default=True, type=bool):
+        return '<a href="{url}" target="_blank">{url}</a>'.format(url=url)
+    else:
+        return '<a href="{url}">{url}</a>'.format(url=url)
+
+
 def perform_text_transforms(text):
     """From http://stackoverflow.com/questions/1727535/replace-urls-in-text-with-links-to-urls"""
     if config.get('web', 'inline_images', default=True, type=bool):
         text =  RE_IMAGE_URL.sub(lambda m: '<img src="{url}">'.format(url=m.group(0)), text)
     if config.get('web', 'detect_links', default=True, type=bool):
-        text =  RE_URL.sub(lambda m: '<a href="{url}">{url}</a>'.format(url=m.group(0)), text)
+        text =  RE_URL.sub(lambda m: linkify(m.group(0)), text)
     return text
 
 

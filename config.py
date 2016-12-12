@@ -40,6 +40,7 @@ OPTIONS = {
         'detect_links',
         'disable_autocapitalize',
         'disable_autocorrect',
+        'links_in_new_window',
         'inline_images',
     ]
 }
