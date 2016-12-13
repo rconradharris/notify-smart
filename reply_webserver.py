@@ -204,9 +204,14 @@ def validate_channel_request(target):
     return secret, _sanitize(target)
 
 
-@app.route('/ajax/channel/<network>/<target>')
+@app.route('/ajax/channel/<network>/<target>', methods=['GET', 'POST'])
 def channel_ajax(network, target):
     secret, target = validate_channel_request(target)
+
+    if flask.request.method == 'POST':
+        write_reply(network, target, flask.request.form['reply'])
+        return ''
+
     after = flask.request.args.get('after')
     if after is not None:
         after = int(after)

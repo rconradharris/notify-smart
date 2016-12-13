@@ -24,7 +24,7 @@
 </div>
 
 {% if not archive %}
-	<form method="post">
+	<form id="reply-form" method="post">
 		<div class="col-xs-12">
 			<input id="reply" class="form-control" type="text" name="reply"
 				placeholder="Type reply here..."
@@ -41,28 +41,22 @@
 
 	$(document).ready(
 		function() {
-		{% if not archive %}
-			// Autoscroll down to reply button, and then go a little further to
-			// account for iPhone's bottom toolbar
-			window.scrollTo(0, $("#reply").offset().top - $(window).height() + 50);
-			{% if poll_interval_ms > 0 %}
-				setInterval(function() {
-					var after = $(".content-table tr:last").attr('id').replace('line-', '');
-					var urlTemplate = "{{ url_for('channel_ajax', network=network, target=target, after='AFTER_LINE', secret=secret, _external=True)|safe }}";
-					$.ajax({
-						url: urlTemplate.replace('AFTER_LINE', after),
-						cache: false
-					}).done(function(html) { $(".content-table tr:last").after(html) });
-				}, {{ poll_interval_ms }});
+			{% if not archive %}
+				scrollToBottom();
+
+				var grabUrlTemplate = "{{ url_for('channel_ajax', network=network, target=target, after='AFTER_LINE', secret=secret, _external=True)|safe }}";
+				var afterReplaceStr = 'AFTER_LINE';
+
+				{% if poll_interval_ms > 0 %}
+					pollForNewChannelContent(grabUrlTemplate, afterReplaceStr, {{ poll_interval_ms }});
+				{% endif %}
+
+				var submitUrl = "{{ url_for('channel_ajax', network=network, target=target, secret=secret, _external=True)|safe }}";
+
+				submitReplyAjax(submitUrl, grabUrlTemplate, afterReplaceStr);
 			{% endif %}
-		{% endif %}
-			$("iframe").each(function(elem) {
-				var content_width = $(".content-col").width();
-				content_width = (content_width > {{ video_max_width }}) ? {{ video_max_width }} : content_width;
-				var aspect = {{ video_max_width }} / {{ video_max_height }};
-				$(this).width(content_width);
-				$(this).height(content_width / aspect);
-			});
+
+			resizeVideoIframes({{ video_max_width }}, {{ video_max_height }});
 		}
 	);
 	</script>
