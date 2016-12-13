@@ -1,0 +1,19 @@
+{% extends '_layout.html' %}
+
+{% block title %}
+{{ target }} Archives
+{% endblock title %}
+
+
+{% block brand %}
+    <a class="navbar-brand" href="{{ url_for('channel_archives', network=network, target=target, secret=secret) }}">{{ target }} <span class="glyphicon glyphicon-folder-open"></span></a>
+{% endblock brand %}
+
+{% block body %}
+    <h1>Archives</h1>
+    <ol>
+        {% for date in archives %}
+            <li><a href="{{ url_for('channel_archive', network=network, target=target, date=date, secret=secret)}}">{{ date }}</a></li>
+        {% endfor %}
+    </ol>
+{% endblock body %}

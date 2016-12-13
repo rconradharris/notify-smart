@@ -145,13 +145,22 @@ def parse_action(line):
     return author, text
 
 
-def format_channel_content(network, target, date, after=None):
+def get_target_path(network, target):
     target_path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
     if not os.path.exists(target_path):
         raise ChannelNotFound
+    return target_path
+
+
+def get_transcript_path(network, target, date):
+    target_path = get_target_path(network, target)
     path = os.path.join(target_path, date)
     if not os.path.exists(path):
         raise TranscriptNotFound
+    return path
+
+
+def format_channel_content(path, after=None):
     with codecs.open(path, encoding='utf-8') as f:
         # Format lines
         lines = []
@@ -202,11 +211,10 @@ def channel_ajax(network, target):
     if after is not None:
         after = int(after)
     try:
-        lines, author_labels = format_channel_content(network, target, 'current',
-                                                      after=after)
+        path = get_transcript_path(network, target, 'current')
     except (ChannelNotFound, TranscriptNotFound):
         return flask.abort(404)
-
+    lines, author_labels = format_channel_content(path, after=after)
     return flask.render_template(
         '_content.html',
         author_labels=author_labels,
@@ -227,10 +235,11 @@ def channel(network, target):
             flask.url_for('channel', network=network, target=target, secret=secret))
 
     try:
-        lines, author_labels = format_channel_content(network, target, 'current')
+        path = get_transcript_path(network, target, 'current')
     except (ChannelNotFound, TranscriptNotFound):
         return flask.abort(404)
 
+    lines, author_labels = format_channel_content(path)
     poll_interval_ms = 1000 * config.get('web', 'poll_interval',
                                          default=DEFAULT_POLL_INTERVAL,
                                          type=float)
@@ -251,14 +260,34 @@ def channel(network, target):
         )
 
 
+@app.route('/channel/<network>/<target>/archives')
+def channel_archives(network, target):
+    secret, target = validate_channel_request(target)
+    try:
+        path = get_target_path(network, target)
+    except (ChannelNotFound):
+        return flask.abort(404)
+
+    archives = [p for p in os.listdir(path) if p != 'current']
+
+    return flask.render_template(
+        'channel_archives.html',
+        archives=archives,
+        network=network,
+        target=target,
+        secret=secret,
+        targets=_targets(),
+        )
+
+
 @app.route('/channel/<network>/<target>/<date>')
 def channel_archive(network, target, date):
     secret, target = validate_channel_request(target)
-
     try:
-        lines, author_labels = format_channel_content(network, target, date)
+        path = get_transcript_path(network, target, date)
     except (ChannelNotFound, TranscriptNotFound):
         return flask.abort(404)
+    lines, author_labels = format_channel_content(path)
 
     return flask.render_template(
         'channel.html',

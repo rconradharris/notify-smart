@@ -8,7 +8,7 @@
 {% endblock head %}
 
 {% block brand %}
-    <a class="navbar-brand" href="{{ url_for('channel', network=network, target=target, secret=secret) }}">{{ target }}</a>
+    <a class="navbar-brand" href="{{ url_for('channel_archives', network=network, target=target, secret=secret) }}">{{ target }} <span class="glyphicon glyphicon-folder-open"></span></a>
 {% endblock brand %}
 
 {% block body %}
@@ -48,33 +48,33 @@
 
 
 {% block javascript %}
-	{% if not archive %}
-		<script type="application/javascript">
+	<script type="application/javascript">
 
-		$(document).ready(
-			function() {
-				// Autoscroll down to reply button, and then go a little further to
-				// account for iPhone's bottom toolbar
-				window.scrollTo(0, $("#reply").offset().top - $(window).height() + 50);
-				{% if poll_interval_ms > 0 %}
-					setInterval(function() {
-						var after = $(".content-table tr:last").attr('id').replace('line-', '');
-						var urlTemplate = "{{ url_for('channel_ajax', network=network, target=target, after='AFTER_LINE', secret=secret, _external=True)|safe }}";
-						$.ajax({
-							url: urlTemplate.replace('AFTER_LINE', after),
-							cache: false
-						}).done(function(html) { $(".content-table tr:last").after(html) });
-					}, {{ poll_interval_ms }});
-				{% endif %}
-				$("iframe").each(function(elem) {
-					var content_width = $(".content-col").width();
-					content_width = (content_width > {{ video_max_width }}) ? {{ video_max_width }} : content_width;
-					var aspect = {{ video_max_width }} / {{ video_max_height }};
-					$(this).width(content_width);
-					$(this).height(content_width / aspect);
-				});
-			}
-		);
-		</script>
-	{% endif %}
+	$(document).ready(
+		function() {
+		{% if not archive %}
+			// Autoscroll down to reply button, and then go a little further to
+			// account for iPhone's bottom toolbar
+			window.scrollTo(0, $("#reply").offset().top - $(window).height() + 50);
+			{% if poll_interval_ms > 0 %}
+				setInterval(function() {
+					var after = $(".content-table tr:last").attr('id').replace('line-', '');
+					var urlTemplate = "{{ url_for('channel_ajax', network=network, target=target, after='AFTER_LINE', secret=secret, _external=True)|safe }}";
+					$.ajax({
+						url: urlTemplate.replace('AFTER_LINE', after),
+						cache: false
+					}).done(function(html) { $(".content-table tr:last").after(html) });
+				}, {{ poll_interval_ms }});
+			{% endif %}
+		{% endif %}
+			$("iframe").each(function(elem) {
+				var content_width = $(".content-col").width();
+				content_width = (content_width > {{ video_max_width }}) ? {{ video_max_width }} : content_width;
+				var aspect = {{ video_max_width }} / {{ video_max_height }};
+				$(this).width(content_width);
+				$(this).height(content_width / aspect);
+			});
+		}
+	);
+	</script>
 {% endblock javascript %}
