@@ -265,8 +265,8 @@ def channel(network, target):
         )
 
 
-@app.route('/channel/<network>/<target>/archives')
-def channel_archives(network, target):
+@app.route('/channel/<network>/<target>/settings')
+def channel_settings(network, target):
     secret, target = validate_channel_request(target)
     try:
         path = get_target_path(network, target)
@@ -276,7 +276,7 @@ def channel_archives(network, target):
     archives = [p for p in os.listdir(path) if p != 'current']
 
     return flask.render_template(
-        'channel_archives.html',
+        'channel_settings.html',
         archives=archives,
         network=network,
         target=target,
