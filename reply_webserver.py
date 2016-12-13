@@ -143,7 +143,7 @@ def parse_action(line):
     return author, text
 
 
-def format_channel_content(network, target, date):
+def format_channel_content(network, target, date, after=None):
     target_path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
     if not os.path.exists(target_path):
         raise ChannelNotFound
@@ -154,7 +154,8 @@ def format_channel_content(network, target, date):
         # Format lines
         lines = []
         authors = set()
-        for line in f.read().splitlines():
+        prev_author = None
+        for line_id, line in enumerate(f.read().splitlines()):
             line = line.strip()
             if line.startswith('<'):
                 author, text = parse_message(line)
@@ -170,7 +171,10 @@ def format_channel_content(network, target, date):
                 raise Exception("Unknown line format '{}'".format(line))
             authors.add(author)
             text = perform_text_transforms(text)
-            lines.append((author, msg_type, text))
+            if prev_author == author:
+                author = None
+            if after is None or line_id > after:
+                lines.append((line_id, author, msg_type, text))
 
     # Assign (hopefully) unique labels to each author
     author_labels = {}
@@ -192,9 +196,12 @@ def validate_channel_request(target):
 @app.route('/ajax/channel/<network>/<target>')
 def channel_ajax(network, target):
     secret, target = validate_channel_request(target)
-
+    after = flask.request.args.get('after')
+    if after is not None:
+        after = int(after)
     try:
-        lines, author_labels = format_channel_content(network, target, 'current')
+        lines, author_labels = format_channel_content(network, target, 'current',
+                                                      after=after)
     except (ChannelNotFound, TranscriptNotFound):
         return flask.abort(404)
 

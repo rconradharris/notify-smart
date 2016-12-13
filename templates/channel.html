@@ -16,7 +16,11 @@
 	<h1>{{ date|title }}</h1>
 {% endif %}
 <div id="channel-content">
-{% include '_content.html' %}
+	<table class="table table-condensed content-table">
+	<tbody>
+		{% include '_content.html' %}
+	</tbody>
+	</table>
 </div>
 
 {% if not archive %}
@@ -54,10 +58,12 @@
 				window.scrollTo(0, $("#reply").offset().top - $(window).height() + 50);
 				{% if poll_interval_ms > 0 %}
 					setInterval(function() {
+						var after = $(".content-table tr:last").attr('id').replace('line-', '');
+						var urlTemplate = "{{ url_for('channel_ajax', network=network, target=target, after='AFTER_LINE', secret=secret, _external=True)|safe }}";
 						$.ajax({
-							url: "{{ url_for('channel_ajax', network=network, target=target, secret=secret, _external=True) }}",
+							url: urlTemplate.replace('AFTER_LINE', after),
 							cache: false
-						}).done(function(html) { $("#channel-content").html(html); });
+						}).done(function(html) { $(".content-table tr:last").after(html) });
 					}, {{ poll_interval_ms }});
 				{% endif %}
 			}

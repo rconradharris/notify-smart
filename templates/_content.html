@@ -1,14 +1,11 @@
-<table class="table table-condensed content-table">
-<tbody>
-{% set prev_author = None %}
-{% for author, msg_type, text in lines %}
-    <tr
+{% for line_id, author, msg_type, text in lines %}
+    <tr id="line-{{ line_id }}"
         {% if msg_type == 'hilight' %}
             class="success"
         {% endif %}
     >
         <td class="col-md-1 col-sm-2 col-xs-3 author-col">
-            {% if prev_author != author %}
+            {% if author %}
                 <span class="label label-{{ author_labels[author] }}">
                 {{ author }}
                 </span>
@@ -24,7 +21,4 @@
             {% endif %}
         </td>
     </tr>
-    {% set prev_author = author %}
 {% endfor %}
-</tbody>
-</table>
