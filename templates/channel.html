@@ -37,12 +37,6 @@
 			</button>
 		</div>
 	</form>
-
-	<form id="close" class="form-inline" method="post" action="{{ url_for('close_channel', network=network, target=target, secret=secret) }}" onsubmit="return confirm('Are you sure?')">
-		<button type="submit" class="btn btn-danger">
-			Close
-		</button>
-	</form>
 {% endif %}
 {% endblock body %}
 

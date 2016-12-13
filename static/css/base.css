@@ -1,4 +1,4 @@
-body { margin-top: 55px; margin-bottom: 50px; }
+body { margin-top: 55px; margin-bottom: 5px; }
 #close { margin-top: 500px; text-align: center; }
 #reply { width: 100%; }
 .right-col { text-align: right; }
@@ -11,3 +11,4 @@ h1 { padding-left: 10px; }
 ul#archives { padding: 0 0 0 10px; list-style: none; }
 ul#archives li { margin-bottom: 25px; }
 ul#archives li .btn { width: 100%; padding-top: 10px; padding-bottom: 10px; }
+#close .btn { width: 100%; padding-top: 10px; padding-bottom: 10px; }
