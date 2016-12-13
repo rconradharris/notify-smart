@@ -88,7 +88,9 @@ def imageify(url):
 
 
 def youtubeify(video_id):
-    return '<iframe src="https://www.youtube.com/embed/{video_id}"></iframe>'.format(video_id=video_id)
+    width = config.get('web', 'video_max_width', default=560, type=int)
+    height = config.get('web', 'video_max_height', default=315, type=int)
+    return '<iframe width="{width}" height="{height}" src="https://www.youtube.com/embed/{video_id}"></iframe>'.format(video_id=video_id, width=width, height=height)
 
 
 def perform_text_transforms(text):
@@ -241,8 +243,8 @@ def channel(network, target):
         lines=lines,
         secret=secret,
         targets=_targets(),
-        video_max_width= config.get('web', 'video_max_width', default=560, type=int),
-        video_max_height = config.get('web', 'video_max_height', default=315, type=int),
+        video_max_width=config.get('web', 'video_max_width', default=560, type=int),
+        video_max_height=config.get('web', 'video_max_height', default=315, type=int),
         disable_autocorrect=config.get('web', 'disable_autocorrect'),
         disable_autocapitalize=config.get('web', 'disable_autocapitalize'),
         poll_interval_ms=poll_interval_ms
@@ -268,8 +270,8 @@ def channel_archive(network, target, date):
         lines=lines,
         secret=secret,
         targets=_targets(),
-        video_max_width= config.get('web', 'video_max_width', default=560, type=int),
-        video_max_height = config.get('web', 'video_max_height', default=315, type=int)
+        video_max_width=config.get('web', 'video_max_width', default=560, type=int),
+        video_max_height=config.get('web', 'video_max_height', default=315, type=int)
         )
 
 
