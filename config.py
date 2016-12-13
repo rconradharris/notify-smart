@@ -42,6 +42,7 @@ OPTIONS = {
         'disable_autocorrect',
         'links_in_new_window',
         'inline_images',
+        'inline_videos',
         'poll_interval',
     ]
 }

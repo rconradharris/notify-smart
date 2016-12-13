@@ -26,6 +26,7 @@ CONFIG_FILE = os.path.join(CONFIG_PATH, 'server-irc-notifier.cfg')
 
 RE_URL = re.compile(r'(^|\s+)http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 RE_IMAGE_URL = re.compile(r'(^|\s+)http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}\.(jpg|jpeg|png|gif|,gifv)')
+RE_YOUTUBE_URL = re.compile(r'(^|\s+)http[s]*://www.youtube.com/watch\?v=(\w+)')
 
 DEFAULT_POLL_INTERVAL = 5.0
 
@@ -82,12 +83,21 @@ def linkify(url):
     else:
         return '<a href="{url}">{url}</a>'.format(url=url)
 
+def imageify(url):
+    return '<img src="{url}">'.format(url=url)
+
+
+def youtubeify(video_id):
+    return '<iframe src="https://www.youtube.com/embed/{video_id}"></iframe>'.format(video_id=video_id)
+
 
 def perform_text_transforms(text):
     """From http://stackoverflow.com/questions/1727535/replace-urls-in-text-with-links-to-urls"""
     text = text.replace('<', '&lt;').replace('>', '&gt;')
+    if config.get('web', 'inline_videos', default=True, type=bool):
+        text =  RE_YOUTUBE_URL.sub(lambda m: youtubeify(m.group(2)), text)
     if config.get('web', 'inline_images', default=True, type=bool):
-        text =  RE_IMAGE_URL.sub(lambda m: '<img src="{url}">'.format(url=m.group(0)), text)
+        text =  RE_IMAGE_URL.sub(lambda m: imageify(m.group(0)), text)
     if config.get('web', 'detect_links', default=True, type=bool):
         text =  RE_URL.sub(lambda m: linkify(m.group(0)), text)
     return text
