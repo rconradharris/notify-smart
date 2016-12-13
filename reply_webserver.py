@@ -26,8 +26,6 @@ CONFIG_FILE = os.path.join(CONFIG_PATH, 'server-irc-notifier.cfg')
 
 RE_URL = re.compile(r'(^|\s+)http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 RE_IMAGE_URL = re.compile(r'(^|\s+)http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}\.(jpg|jpeg|png|gif|,gifv)')
-RE_MSG = re.compile(r'\<(.*)\>\s(.*)')
-RE_ACTION = re.compile(r'\s*\*\s*(\w+)\s*(.*)')
 
 DEFAULT_POLL_INTERVAL = 5.0
 
@@ -87,6 +85,7 @@ def linkify(url):
 
 def perform_text_transforms(text):
     """From http://stackoverflow.com/questions/1727535/replace-urls-in-text-with-links-to-urls"""
+    text = text.replace('<', '&lt;').replace('>', '&gt;')
     if config.get('web', 'inline_images', default=True, type=bool):
         text =  RE_IMAGE_URL.sub(lambda m: '<img src="{url}">'.format(url=m.group(0)), text)
     if config.get('web', 'detect_links', default=True, type=bool):
@@ -119,6 +118,21 @@ def write_reply(network, target, reply):
         f.write(u'{network} {target} {reply}\n'.format(network=network, target=target, reply=reply))
 
 
+def parse_message(line):
+    author, text = line.split('>', 1)
+    author = author.replace('<', '').strip()
+    text = text.strip()
+    return author, text
+
+
+def parse_action(line):
+    parts = line.strip().split()
+    # part[0] is the '*' character
+    author = parts[1]
+    text = parts[2]
+    return author, text
+
+
 def format_channel_content(network, target, date):
     target_path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
     if not os.path.exists(target_path):
@@ -133,20 +147,18 @@ def format_channel_content(network, target, date):
         for line in f.read().splitlines():
             line = line.strip()
             if line.startswith('<'):
-                author, text = RE_MSG.match(line).groups()
+                author, text = parse_message(line)
                 msg_type = 'msg'
             elif line.startswith('*'):
-                author, text = RE_ACTION.match(line).groups()
+                author, text = parse_action(line)
                 msg_type = 'action'
             elif line.startswith('!'):
                 line = line[1:].strip()
-                author, text = RE_MSG.match(line).groups()
+                author, text = parse_message(line)
                 msg_type = 'hilight'
             else:
                 raise Exception("Unknown line format '{}'".format(line))
-            author = author.strip()
             authors.add(author)
-            text = text.replace('<', '&lt;').replace('>', '&gt;')
             text = perform_text_transforms(text)
             lines.append((author, msg_type, text))
 
