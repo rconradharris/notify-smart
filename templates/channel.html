@@ -25,16 +25,11 @@
 
 {% if not archive %}
 	<form method="post">
-		<div class="col-md-11 col-sm-11 col-xs-9">
+		<div class="col-xs-12">
 			<input id="reply" class="form-control" type="text" name="reply"
 				placeholder="Type reply here..."
 				autocorrect="{{ 'off' if disable_autocorrect else '' }}"
 				autocapitalize="{{ 'none' if disable_autocapitalize else ''}}">
-			</div>
-		<div class="right-col col-md-1 col-sm-1 col-xs-1">
-			<button type="submit" class="btn btn-success">
-				<span class="glyphicon glyphicon-send"></span>
-			</button>
 		</div>
 	</form>
 {% endif %}
