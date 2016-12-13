@@ -29,4 +29,6 @@ disable_autocapitalize = true
 disable_autocorrect = false
 inline_images = true
 inline_videos = true
+video_max_width = 560
+video_max_height = 315
 poll_interval = 5.0

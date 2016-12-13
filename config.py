@@ -44,6 +44,8 @@ OPTIONS = {
         'inline_images',
         'inline_videos',
         'poll_interval',
+	'video_max_width',
+	'video_max_height',
     ]
 }
 

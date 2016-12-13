@@ -241,9 +241,12 @@ def channel(network, target):
         lines=lines,
         secret=secret,
         targets=_targets(),
+        video_max_width= config.get('web', 'video_max_width', default=560, type=int),
+        video_max_height = config.get('web', 'video_max_height', default=315, type=int),
         disable_autocorrect=config.get('web', 'disable_autocorrect'),
         disable_autocapitalize=config.get('web', 'disable_autocapitalize'),
-        poll_interval_ms=poll_interval_ms)
+        poll_interval_ms=poll_interval_ms
+        )
 
 
 @app.route('/channel/<network>/<target>/<date>')
@@ -264,7 +267,10 @@ def channel_archive(network, target, date):
         author_labels=author_labels,
         lines=lines,
         secret=secret,
-        targets=_targets())
+        targets=_targets(),
+        video_max_width= config.get('web', 'video_max_width', default=560, type=int),
+        video_max_height = config.get('web', 'video_max_height', default=315, type=int)
+        )
 
 
 if __name__ == '__main__':

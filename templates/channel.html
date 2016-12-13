@@ -66,6 +66,13 @@
 						}).done(function(html) { $(".content-table tr:last").after(html) });
 					}, {{ poll_interval_ms }});
 				{% endif %}
+				$("iframe").each(function(elem) {
+					var content_width = $(".content-col").width();
+					content_width = (content_width > {{ video_max_width }}) ? {{ video_max_width }} : content_width;
+					var aspect = {{ video_max_width }} / {{ video_max_height }};
+					$(this).width(content_width);
+					$(this).height(content_width / aspect);
+				});
 			}
 		);
 		</script>
