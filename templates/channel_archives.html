@@ -10,10 +10,12 @@
 {% endblock brand %}
 
 {% block body %}
-    <h1>Archives</h1>
-    <ol>
-        {% for date in archives %}
-            <li><a href="{{ url_for('channel_archive', network=network, target=target, date=date, secret=secret)}}">{{ date }}</a></li>
-        {% endfor %}
-    </ol>
+    <div class="col-md-3 col-sm-12 col-xs-12">
+        <h1>Archives</h1>
+        <ul id="archives">
+            {% for date in archives %}
+                <li><a class="btn btn-default" href="{{ url_for('channel_archive', network=network, target=target, date=date, secret=secret)}}">{{ date }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock body %}

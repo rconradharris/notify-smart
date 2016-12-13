@@ -7,4 +7,7 @@ body { margin-top: 55px; margin-bottom: 50px; }
 .content-col img { max-width:100%; height:auto; }
 .content-table { table-layout: fixed; }
 .content-table > tbody > tr > td { border: none; }
-h1 { padding-left: 5px; }
+h1 { padding-left: 10px; }
+ul#archives { padding: 0 0 0 10px; list-style: none; }
+ul#archives li { margin-bottom: 25px; }
+ul#archives li .btn { width: 100%; padding-top: 10px; padding-bottom: 10px; }
