@@ -1,11 +1,11 @@
 use strict;
+use POSIX qw(strftime);
 use File::Basename;
 use File::Path 'make_path';
-use vars qw($SCROLLBACK $VERSION %IRSSI);
+use vars qw($VERSION %IRSSI);
 
 use Irssi;
-$SCROLLBACK = 100;
-$VERSION = '0.0.5';
+$VERSION = '0.0.6';
 %IRSSI = (
 	authors     => 'Rick Harris',
 	contact     => 'rconradharris@gmail.com',
@@ -32,14 +32,11 @@ sub reply_poller {
 }
 
 sub append_file {
-	my ($filename, $text) = @_;
-    my $path = Irssi::get_irssi_dir() . "/" . $filename;
+    my ($path, $text) = @_;
     make_path(dirname($path));
     open(my $file, ">>".$path);
     print($file $text . "\n");
     close($file);
-    # Rotate file
-    system("tail -n$SCROLLBACK $path > $path.tmp && mv $path.tmp $path");
 }
 
 sub handle_msg {
@@ -47,10 +44,26 @@ sub handle_msg {
 
     # Log Transcript
     if (($dest->{level} & MSGLEVEL_PUBLIC) || ($dest->{level} & MSGLEVEL_MSGS)) {
+        my $date = strftime("%Y-%m-%d", localtime);
         my $network = $dest->{server}->{tag};
         my $hilight = $dest->{level} & MSGLEVEL_HILIGHT ? '! ' : '';
-        append_file("transcripts/" . $network . "/" . $dest->{target},
-                    $hilight . $stripped);
+        my $target_path = Irssi::get_irssi_dir() . "/transcripts/"
+                                                 . $network
+                                                 . "/" . $dest->{target};
+        my $transcript_path = $target_path . "/" . $date;
+        my $text = $hilight . $stripped;
+        append_file($transcript_path, $text);
+
+        # Adjust 'current' symlink if necessary
+        my $current_path = $target_path . "/current";
+        if (-e $current_path) {
+            if (readlink($current_path) != $transcript_path) {
+                unlink($current_path);
+                symlink($transcript_path, $current_path);
+            }
+        } else {
+            symlink($transcript_path, $current_path);
+        }
     }
 
     # Notify
@@ -59,7 +72,9 @@ sub handle_msg {
         # Do not send notifications for messages that your wrote
         if ($author ne $dest->{server}->{nick}) {
             my $network = $dest->{server}->{tag};
-            append_file('fnotify', $network . ' ' . $dest->{target} . ' ' . $stripped);
+            my $path = Irssi::get_irssi_dir() . '/' . 'fnotify';
+            my $text = $network . ' ' . $dest->{target} . ' ' . $stripped;
+            append_file($path, $text);
         }
     }
 }

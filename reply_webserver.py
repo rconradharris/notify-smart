@@ -5,6 +5,7 @@ Webserver to serve the reply form.
 import codecs
 import os
 import re
+import shutil
 import string
 import time
 
@@ -35,6 +36,10 @@ class ChannelNotFound(Exception):
     pass
 
 
+class TranscriptNotFound(Exception):
+    pass
+
+
 def _validate_secret(value):
     secret = config.get('reply', 'secret')
     if not secret:
@@ -59,7 +64,8 @@ def _targets():
         path = os.path.join(TRANSCRIPTS_DIRECTORY, network)
         if os.path.isdir(path):
             for target in os.listdir(path):
-                targets.append((network, target))
+                if os.path.isdir(path):
+                    targets.append((network, target))
     return targets
 
 
@@ -99,7 +105,7 @@ def close_channel(network, target):
     path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
     if not os.path.exists(path):
         return flask.abort(404)
-    os.unlink(path)
+    shutil.rmtree(path)
     return flask.redirect(flask.url_for('channels', targets=_targets(), secret=secret))
 
 
@@ -113,10 +119,13 @@ def write_reply(network, target, reply):
         f.write(u'{network} {target} {reply}\n'.format(network=network, target=target, reply=reply))
 
 
-def format_channel_content(network, target):
-    path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
-    if not os.path.exists(path):
+def format_channel_content(network, target, date):
+    target_path = os.path.join(TRANSCRIPTS_DIRECTORY, network, target)
+    if not os.path.exists(target_path):
         raise ChannelNotFound
+    path = os.path.join(target_path, date)
+    if not os.path.exists(path):
+        raise TranscriptNotFound
     with codecs.open(path, encoding='utf-8') as f:
         # Format lines
         lines = []
@@ -150,17 +159,23 @@ def format_channel_content(network, target):
     return lines, author_labels
 
 
-@app.route('/ajax/channel/<network>/<target>')
-def channel_ajax(network, target):
+def validate_channel_request(target):
     secret = flask.request.args.get('secret', '')
     if not _validate_secret(secret):
         return flask.abort(404)
     # Sanitize target to prevent injection attacks
-    target = _sanitize(target)
+    return secret, _sanitize(target)
+
+
+@app.route('/ajax/channel/<network>/<target>')
+def channel_ajax(network, target):
+    secret, target = validate_channel_request(target)
+
     try:
-        lines, author_labels = format_channel_content(network, target)
-    except ChannelNotFound:
+        lines, author_labels = format_channel_content(network, target, 'current')
+    except (ChannelNotFound, TranscriptNotFound):
         return flask.abort(404)
+
     return flask.render_template(
         '_content.html',
         author_labels=author_labels,
@@ -169,12 +184,8 @@ def channel_ajax(network, target):
 
 @app.route('/channel/<network>/<target>', methods=['GET', 'POST'])
 def channel(network, target):
-    secret = flask.request.args.get('secret', '')
-    if not _validate_secret(secret):
-        return flask.abort(404)
+    secret, target = validate_channel_request(target)
 
-    # Sanitize target to prevent injection attacks
-    target = _sanitize(target)
     if flask.request.method == 'POST':
         write_reply(network, target, flask.request.form['reply'])
 
@@ -183,25 +194,50 @@ def channel(network, target):
 
         return flask.redirect(
             flask.url_for('channel', network=network, target=target, secret=secret))
-    else:
-        try:
-            lines, author_labels = format_channel_content(network, target)
-        except ChannelNotFound:
-            return flask.abort(404)
-        poll_interval_ms = 1000 * config.get('web', 'poll_interval',
-                                             default=DEFAULT_POLL_INTERVAL,
-                                             type=float)
-        return flask.render_template(
-            'channel.html',
-            network=network,
-            target=target,
-            author_labels=author_labels,
-            lines=lines,
-            secret=secret,
-            targets=_targets(),
-            disable_autocorrect=config.get('web', 'disable_autocorrect'),
-            disable_autocapitalize=config.get('web', 'disable_autocapitalize'),
-            poll_interval_ms=poll_interval_ms)
+
+    date = 'current'
+    try:
+        lines, author_labels = format_channel_content(network, target, date)
+    except (ChannelNotFound, TranscriptNotFound):
+        return flask.abort(404)
+
+    poll_interval_ms = 1000 * config.get('web', 'poll_interval',
+                                         default=DEFAULT_POLL_INTERVAL,
+                                         type=float)
+    return flask.render_template(
+        'channel.html',
+        archive=False,
+        date=date,
+        network=network,
+        target=target,
+        author_labels=author_labels,
+        lines=lines,
+        secret=secret,
+        targets=_targets(),
+        disable_autocorrect=config.get('web', 'disable_autocorrect'),
+        disable_autocapitalize=config.get('web', 'disable_autocapitalize'),
+        poll_interval_ms=poll_interval_ms)
+
+
+@app.route('/channel/<network>/<target>/<date>')
+def channel_archive(network, target, date):
+    secret, target = validate_channel_request(target)
+
+    try:
+        lines, author_labels = format_channel_content(network, target, date)
+    except (ChannelNotFound, TranscriptNotFound):
+        return flask.abort(404)
+
+    return flask.render_template(
+        'channel.html',
+        archive=True,
+        date=date,
+        network=network,
+        target=target,
+        author_labels=author_labels,
+        lines=lines,
+        secret=secret,
+        targets=_targets())
 
 
 if __name__ == '__main__':

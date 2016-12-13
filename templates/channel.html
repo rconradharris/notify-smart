@@ -12,50 +12,54 @@
 {% endblock brand %}
 
 {% block body %}
+<h1>{{ date|title }}</h1>
 <div id="channel-content">
 {% include '_content.html' %}
 </div>
 
-<form method="post">
-    <div class="col-md-11 col-sm-11 col-xs-9">
-        <input id="reply" class="form-control" type="text" name="reply"
-            placeholder="Type reply here..."
-            autocorrect="{{ 'off' if disable_autocorrect else '' }}"
-            autocapitalize="{{ 'none' if disable_autocapitalize else ''}}">
-        </div>
-    <div class="right-col col-md-1 col-sm-1 col-xs-1">
-        <button type="submit" class="btn btn-success">
-            <span class="glyphicon glyphicon-send"></span>
-        </button>
-    </div>
+{% if not archive %}
+	<form method="post">
+		<div class="col-md-11 col-sm-11 col-xs-9">
+			<input id="reply" class="form-control" type="text" name="reply"
+				placeholder="Type reply here..."
+				autocorrect="{{ 'off' if disable_autocorrect else '' }}"
+				autocapitalize="{{ 'none' if disable_autocapitalize else ''}}">
+			</div>
+		<div class="right-col col-md-1 col-sm-1 col-xs-1">
+			<button type="submit" class="btn btn-success">
+				<span class="glyphicon glyphicon-send"></span>
+			</button>
+		</div>
+	</form>
 
-</form>
-
-<form id="close" class="form-inline" method="post" action="{{ url_for('close_channel', network=network, target=target, secret=secret) }}" onsubmit="return confirm('Are you sure?')">
-    <button type="submit" class="btn btn-danger">
-        Close
-    </button>
-</form>
+	<form id="close" class="form-inline" method="post" action="{{ url_for('close_channel', network=network, target=target, secret=secret) }}" onsubmit="return confirm('Are you sure?')">
+		<button type="submit" class="btn btn-danger">
+			Close
+		</button>
+	</form>
+{% endif %}
 {% endblock body %}
 
 
 {% block javascript %}
-<script type="application/javascript">
+	{% if not archive %}
+		<script type="application/javascript">
 
-$(document).ready(
-	function() {
-        // Autoscroll down to reply button, and then go a little further to
-        // account for iPhone's bottom toolbar
-        window.scrollTo(0, $("#reply").offset().top - $(window).height() + 50);
-		{% if poll_interval_ms > 0 %}
-			setInterval(function() {
-				$.ajax({
-					url: "{{ url_for('channel_ajax', network=network, target=target, secret=secret, _external=True) }}",
-					cache: false
-				}).done(function(html) { $("#channel-content").html(html); });
-			}, {{ poll_interval_ms }});
-		{% endif %}
-	}
-);
-</script>
+		$(document).ready(
+			function() {
+				// Autoscroll down to reply button, and then go a little further to
+				// account for iPhone's bottom toolbar
+				window.scrollTo(0, $("#reply").offset().top - $(window).height() + 50);
+				{% if poll_interval_ms > 0 %}
+					setInterval(function() {
+						$.ajax({
+							url: "{{ url_for('channel_ajax', network=network, target=target, secret=secret, _external=True) }}",
+							cache: false
+						}).done(function(html) { $("#channel-content").html(html); });
+					}, {{ poll_interval_ms }});
+				{% endif %}
+			}
+		);
+		</script>
+	{% endif %}
 {% endblock javascript %}
