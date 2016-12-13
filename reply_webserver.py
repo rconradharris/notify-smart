@@ -207,9 +207,8 @@ def channel(network, target):
         return flask.redirect(
             flask.url_for('channel', network=network, target=target, secret=secret))
 
-    date = 'current'
     try:
-        lines, author_labels = format_channel_content(network, target, date)
+        lines, author_labels = format_channel_content(network, target, 'current')
     except (ChannelNotFound, TranscriptNotFound):
         return flask.abort(404)
 
@@ -219,7 +218,6 @@ def channel(network, target):
     return flask.render_template(
         'channel.html',
         archive=False,
-        date=date,
         network=network,
         target=target,
         author_labels=author_labels,

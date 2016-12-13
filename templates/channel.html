@@ -12,7 +12,9 @@
 {% endblock brand %}
 
 {% block body %}
-<h1>{{ date|title }}</h1>
+{% if date %}
+	<h1>{{ date|title }}</h1>
+{% endif %}
 <div id="channel-content">
 {% include '_content.html' %}
 </div>
