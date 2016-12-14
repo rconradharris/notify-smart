@@ -273,7 +273,18 @@ def channel_settings(network, target):
     except (ChannelNotFound):
         return flask.abort(404)
 
-    archives = [p for p in os.listdir(path) if p != 'current']
+    exclude = ['current']
+    try:
+        transcript_path = get_transcript_path(network, target, 'current')
+    except TranscriptNotFound:
+        pass
+    else:
+        # Exclude the file the current symlink points to
+        current_dst = os.path.basename(os.readlink(transcript_path))
+        exclude.append(current_dst)
+
+    archives = [p for p in os.listdir(path) if p not in exclude]
+    archives.sort(reverse=True)
 
     return flask.render_template(
         'channel_settings.html',
