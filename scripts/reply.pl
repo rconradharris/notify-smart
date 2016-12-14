@@ -57,7 +57,7 @@ sub handle_msg {
         # Adjust 'current' symlink if necessary
         my $current_path = $target_path . "/current";
         if (-e $current_path) {
-            if (readlink($current_path) != $transcript_path) {
+            if (readlink($current_path) ne $transcript_path) {
                 unlink($current_path);
                 symlink($transcript_path, $current_path);
             }
