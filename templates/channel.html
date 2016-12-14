@@ -8,9 +8,12 @@
 {% endblock head %}
 
 {% block brand %}
-    <a class="navbar-brand" href="{{ url_for('channel_settings', network=network, target=target, secret=secret) }}">
+	<a class="navbar-brand" href="{{ url_for('channel_settings', network=network, target=target, secret=secret) }}">
 		<span class="glyphicon glyphicon-cog"></span>
 		{{ target }}
+	</a>
+	<a id="scroll-to-bottom" class="navbar-brand" href="javascript:void(0);" onclick="scrollToBottom();">
+		<span class="glyphicon glyphicon-menu-down"></span>
 	</a>
 {% endblock brand %}
 

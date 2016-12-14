@@ -11,3 +11,5 @@ ul#archives { padding: 0 0 0 10px; list-style: none; }
 ul#archives li { margin-bottom: 25px; }
 ul#archives li .btn { width: 100%; padding-top: 10px; padding-bottom: 10px; }
 #close .btn { width: 100%; padding-top: 10px; padding-bottom: 10px; }
+#scroll-to-bottom { margin-left: 10%; }
+@media (min-width: 768px) { #scroll-to-bottom { margin-left: 150px; } }

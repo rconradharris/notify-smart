@@ -1,7 +1,6 @@
 function scrollToBottom() {
-    // Autoscroll down to reply button, and then go a little further to
-    // account for iPhone's bottom toolbar
-    window.scrollTo(0, $("#reply").offset().top - $(window).height() + 50);
+	$("html, body").animate({ scrollTop: $(document).height()-$(window).height() });
+
 }
 
 
